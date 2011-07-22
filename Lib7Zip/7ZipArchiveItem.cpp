@@ -13,10 +13,13 @@
 
 #include "HelperFuncs.h"
 
+const wchar_t *kEmptyFileAlias = L"[Content]";
+
 class C7ZipArchiveItemImpl : public virtual C7ZipArchiveItem
 {
 public:
-	C7ZipArchiveItemImpl(wstring fullPath, UInt64 size, bool isDir, bool isEncrypted, unsigned int nIndex);
+	C7ZipArchiveItemImpl(IInArchive * pInArchive,
+						 unsigned int nIndex);
 	virtual ~C7ZipArchiveItemImpl();
 
 public:
@@ -27,19 +30,14 @@ public:
 	virtual unsigned int GetArchiveIndex() const;
 
 private:
-	wstring m_FullPath;
-	UInt64 m_Size;
-	bool m_bIsDir;
-	bool m_bIsEncrypted;
+	CMyComPtr<IInArchive> m_pInArchive;
 	unsigned int m_nIndex;
 };
 
-C7ZipArchiveItemImpl::C7ZipArchiveItemImpl(wstring fullPath, UInt64 size, bool isDir, bool isEncrypted, unsigned int nIndex) :
-m_FullPath(fullPath),
-m_Size(size),
-m_bIsDir(isDir),
-m_bIsEncrypted(isEncrypted),
-m_nIndex(nIndex)
+C7ZipArchiveItemImpl::C7ZipArchiveItemImpl(IInArchive * pInArchive,
+										   unsigned int nIndex) :
+	m_pInArchive(pInArchive),
+	m_nIndex(nIndex)
 {
 }
 
@@ -49,22 +47,51 @@ C7ZipArchiveItemImpl::~C7ZipArchiveItemImpl()
 
 wstring C7ZipArchiveItemImpl::GetFullPath() const
 {
-	return m_FullPath;
+	// Get Name
+	NWindows::NCOM::CPropVariant prop;
+	wstring fullPath = kEmptyFileAlias;
+
+	if (!m_pInArchive->GetProperty(m_nIndex, kpidPath, &prop)) {
+		if (prop.vt == VT_BSTR)
+			fullPath = prop.bstrVal;
+	}
+
+	return fullPath;
 }
 
 UInt64 C7ZipArchiveItemImpl::GetSize() const
 {
-	return m_Size;
+	// Get uncompressed size
+	NWindows::NCOM::CPropVariant prop;
+	if (m_pInArchive->GetProperty(m_nIndex, kpidSize, &prop) != 0)
+		return 0;
+
+	UInt64 size = 0;
+
+	if (prop.vt == VT_UI8 || prop.vt == VT_UI4)
+		size = ConvertPropVariantToUInt64(prop);
+
+	return size;
 }
 
 bool C7ZipArchiveItemImpl::IsEncrypted() const
 {
-	return m_bIsEncrypted;
+	// Check if encrypted (password protected)
+	NWindows::NCOM::CPropVariant prop;
+	bool isEncrypted = false;
+	if (m_pInArchive->GetProperty(m_nIndex, kpidEncrypted, &prop) == 0 && prop.vt == VT_BOOL)
+		isEncrypted = prop.bVal;
+	return isEncrypted;
 }
 
 bool C7ZipArchiveItemImpl::IsDir() const
 {
-	return m_bIsDir;
+	// Check IsDir
+	NWindows::NCOM::CPropVariant prop;
+	bool isDir = false;
+	IsArchiveItemFolder(m_pInArchive, m_nIndex, isDir);
+
+	return isDir;
 }
 
 unsigned int C7ZipArchiveItemImpl::GetArchiveIndex() const
@@ -73,14 +100,11 @@ unsigned int C7ZipArchiveItemImpl::GetArchiveIndex() const
 }
 
 bool Create7ZipArchiveItem(C7ZipArchive * pArchive, 
-						   const wstring & fullpath, 
-						   UInt64 size,
-						   bool isDir, 
-						   bool isEncrypted,
+						   IInArchive * pInArchive,
 						   unsigned int nIndex,
 						   C7ZipArchiveItem ** ppItem)
 {
-	*ppItem = new C7ZipArchiveItemImpl(fullpath, size, isDir,isEncrypted,  nIndex);
+	*ppItem = new C7ZipArchiveItemImpl(pInArchive, nIndex);
 
 	return true;
 }

@@ -14,13 +14,8 @@
 
 #include "HelperFuncs.h"
 
-const wchar_t *kEmptyFileAlias = L"[Content]";
-
 extern bool Create7ZipArchiveItem(C7ZipArchive * pArchive, 
-								  const wstring & fullpath, 
-								  UInt64 size,
-								  bool isDir, 
-								  bool isEncrypted,
+								  IInArchive * pInArchive,
 								  unsigned int nIndex,
 								  C7ZipArchiveItem ** ppItem);
 
@@ -96,7 +91,6 @@ public:
 	C7ZipArchiveImpl(C7ZipLibrary * pLibrary, IInArchive * pInArchive);
 	virtual ~C7ZipArchiveImpl();
 
-	friend class C7ZipArchiveItemImpl;
 public:
 	virtual bool GetItemCount(unsigned int * pNumItems);
 	virtual bool GetItemInfo(unsigned int index, C7ZipArchiveItem ** ppArchiveItem);
@@ -176,42 +170,9 @@ bool C7ZipArchiveImpl::Initialize()
 
 	for(UInt32 i = 0; i < numItems; i++)
 	{
-
-		// Get Name
-		NWindows::NCOM::CPropVariant prop;
-		if (m_pInArchive->GetProperty(i, kpidPath, &prop) != 0)
-			continue;
-
-		wstring fullPath;
-		if (prop.vt == VT_EMPTY)
-			fullPath = kEmptyFileAlias;
-		else
-		{
-			if (prop.vt != VT_BSTR)
-				return false;
-			fullPath = prop.bstrVal;
-		}
-
-		// Get uncompressed size
-		if (m_pInArchive->GetProperty(i, kpidSize, &prop) != 0)
-			continue;
-		UInt64 size = 0;
-		if (prop.vt == VT_UI8 || prop.vt == VT_UI4)
-			size = ConvertPropVariantToUInt64(prop);
-
-		// Check IsDir
-		bool isDir = false;
-		if (IsArchiveItemFolder(m_pInArchive, i, isDir) != 0)
-			continue;
-
-		// Check if encrypted (password protected)
-		bool isEncrypted = false;
-		if (m_pInArchive->GetProperty(i, kpidEncrypted, &prop) == 0 && prop.vt == VT_BOOL)
-			isEncrypted = prop.bVal;
-
 		C7ZipArchiveItem * pItem = NULL;
 
-		if (Create7ZipArchiveItem(this, fullPath, size, isDir, isEncrypted, i, &pItem))
+		if (Create7ZipArchiveItem(this, m_pInArchive, i, &pItem))
 		{
 			m_ArchiveItems.push_back(pItem);
 		}

@@ -48,6 +48,32 @@ private:
     bool m_bAutoRelease;
 };
 
+namespace lib7zip {
+	enum PropertyIndexEnum {
+		kpidPackSize, //(Packed Size)
+		kpidAttrib, //(Attributes)
+		kpidCTime, //(Created)
+		kpidATime, //(Accessed)
+		kpidMTime, //(Modified)
+		kpidSolid, //(Solid)
+		kpidEncrypted, //(Encrypted)
+		kpidUser, //(User)
+		kpidGroup, //(Group)
+		kpidComment, //(Comment)
+		kpidPhySize, //(Physical Size)
+		kpidHeadersSize, //(Headers Size)
+		kpidChecksum, //(Checksum)
+		kpidCharacts, //(Characteristics)
+		kpidCreatorApp, //(Creator Application)
+		kpidTotalSize, //(Total Size)
+		kpidFreeSpace, //(Free Space)
+		kpidClusterSize, //(Cluster Size)
+		kpidVolumeName, //(Label)
+		kpidPath, //(FullPath)
+		kpidIsDir, //(IsDir)
+	};
+};
+
 class C7ZipArchiveItem : public virtual C7ZipObject
 {
 public:
@@ -59,7 +85,15 @@ public:
 	virtual unsigned __int64 GetSize() const = 0;
 	virtual bool IsDir() const  = 0;
 	virtual bool IsEncrypted() const  = 0;
+
 	virtual unsigned int GetArchiveIndex() const  = 0;
+
+	virtual bool GetUInt64Property(lib7zip::PropertyIndexEnum propertyIndex,
+											   unsigned __int64 & val) const = 0;
+	virtual bool GetBoolProperty(lib7zip::PropertyIndexEnum propertyIndex,
+								 bool & val) const = 0;
+	virtual bool GetStringProperty(lib7zip::PropertyIndexEnum propertyIndex,
+									  wstring & val) const = 0;
 };
 
 class C7ZipInStream
