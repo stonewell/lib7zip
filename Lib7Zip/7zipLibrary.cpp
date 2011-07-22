@@ -817,7 +817,7 @@ bool LoadDllFromFolder(C7ZipDllHandler * pMainHandler,
 }
 #else
 
-#ifdef __WXMAC__
+#if defined(__WXMAC__) || defined(__APPLE__)
 int myselect(struct dirent * pDir );
 #else
 int myselect(const struct dirent * pDir );
@@ -854,7 +854,7 @@ bool LoadDllFromFolder(C7ZipDllHandler * pMainHandler, const string & folder_nam
     return true;
 }
 
-#ifdef __WXMAC__
+#if defined(__WXMAC__) || defined(__APPLE__)
 int myselect(struct dirent * pDir )
 #else
 int myselect(const struct dirent * pDir )
