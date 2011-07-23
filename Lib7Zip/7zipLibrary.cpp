@@ -396,9 +396,7 @@ static bool InternalOpenArchive(C7ZipLibrary * pLibrary,
         RBOOLOK(setCompressCodecsInfo->SetCompressCodecsInfo(pCompressCodecsInfo));
     }
 
-	wprintf(L"1\n");
     RBOOLOK(archive->Open(inStream, &kMaxCheckStartPosition, openCallBack));
-	wprintf(L"2\n");
 
     return Create7ZipArchive(pLibrary, archive, ppArchive);
 }
