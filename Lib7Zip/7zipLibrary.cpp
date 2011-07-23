@@ -110,15 +110,20 @@ public:
 class CArchiveOpenCallback:
     public IArchiveOpenCallback,
     public ICryptoGetTextPassword,
+	public IArchiveOpenVolumeCallback,
     public CMyUnknownImp
 {
 public:
     MY_UNKNOWN_IMP1(ICryptoGetTextPassword)
 
-        STDMETHOD(SetTotal)(const UInt64 *files, const UInt64 *bytes);
+    STDMETHOD(SetTotal)(const UInt64 *files, const UInt64 *bytes);
     STDMETHOD(SetCompleted)(const UInt64 *files, const UInt64 *bytes);
 
     STDMETHOD(CryptoGetTextPassword)(BSTR *password);
+
+	// IArchiveOpenVolumeCallback
+	STDMETHOD(GetProperty)(PROPID propID, PROPVARIANT *value);
+	STDMETHOD(GetStream)(const wchar_t *name, IInStream **inStream);
 
     bool PasswordIsDefined;
     wstring Password;
@@ -349,10 +354,8 @@ static int CreateInArchive(pU7ZipFunctions pFunctions,
 
         for(WStringArray::const_iterator extIt = pInfo->Exts.begin(); extIt != pInfo->Exts.end(); extIt++)
         {
-							wprintf(L"1. %ls: %ls\n", (*extIt).c_str(), ext.c_str());
             if (MyStringCompareNoCase((*extIt).c_str(), ext.c_str()) == 0)
             {
-							wprintf(L"2. %ls: %ls\n", (*extIt).c_str(), ext.c_str());
                 return pFunctions->v.CreateObject(&pInfo->m_ClassID, 
                     &IID_IInArchive, (void **)&archive);
             }
@@ -378,7 +381,6 @@ static bool InternalOpenArchive(C7ZipLibrary * pLibrary,
     if (archive == NULL)
         return false;
 
-		wprintf(L"1\n");
     CMyComPtr<IInStream> inStream(pInStream); 
 
     CArchiveOpenCallback * pOpenCallBack = new CArchiveOpenCallback();
@@ -393,9 +395,11 @@ static bool InternalOpenArchive(C7ZipLibrary * pLibrary,
             new C7ZipCompressCodecsInfo(pLibrary);
         RBOOLOK(setCompressCodecsInfo->SetCompressCodecsInfo(pCompressCodecsInfo));
     }
-		wprintf(L"2\n");
+
+	wprintf(L"1\n");
     RBOOLOK(archive->Open(inStream, &kMaxCheckStartPosition, openCallBack));
-		wprintf(L"3\n");
+	wprintf(L"2\n");
+
     return Create7ZipArchive(pLibrary, archive, ppArchive);
 }
 
@@ -1005,3 +1009,14 @@ HRESULT C7ZipCompressCodecsInfo::CreateEncoder(UInt32 index, const GUID *interfa
     return S_OK;
 }
 
+STDMETHODIMP CArchiveOpenCallback::GetProperty(PROPID propID, PROPVARIANT *value) 
+{
+	wprintf(L"GetProperty:%d\n", propID);
+	return S_OK;
+}
+
+STDMETHODIMP CArchiveOpenCallback::GetStream(const wchar_t *name, IInStream **inStream)
+{
+	wprintf(L"GetSTream %ls\n", name);
+	return S_OK;
+}

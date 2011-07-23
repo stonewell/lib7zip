@@ -50,8 +50,17 @@ public:
 public:
 	virtual wstring GetExt() const
 	{
+		static int i = 0;
+
+		if (i == 0) {
+		wprintf(L"5555\n");
 		wprintf(L"GetExt:%ls\n", m_strFileExt.c_str());
-		return m_strFileExt;
+		i++;
+		//return m_strFileExt;
+		return L"001";
+		} else {
+			return L"7z";
+		}
 	}
 
 	virtual int Read(void *data, unsigned int size, unsigned int *processedSize)

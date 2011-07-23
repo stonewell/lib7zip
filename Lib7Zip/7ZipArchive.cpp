@@ -72,7 +72,7 @@ public:
 
 	// ICryptoGetTextPassword
 	STDMETHOD(CryptoGetTextPassword)(BSTR *aPassword);
-
+	
 private:
 	C7ZipOutStreamWrap * _outFileStreamSpec;
 	CMyComPtr<ISequentialOutStream> _outFileStream;
