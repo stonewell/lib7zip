@@ -94,6 +94,8 @@ public:
 								 bool & val) const = 0;
 	virtual bool GetStringProperty(lib7zip::PropertyIndexEnum propertyIndex,
 									  wstring & val) const = 0;
+	virtual bool GetFileTimeProperty(lib7zip::PropertyIndexEnum propertyIndex,
+									 unsigned __int64 & val) const = 0;
 };
 
 class C7ZipInStream
