@@ -8,7 +8,7 @@ lib7zip_a_SOURCES = \
 nodist_lib7zip_a_SOURCES= ../includes/CPP/Common/MyWindows.cpp ../includes/CPP/Common/StdAfx.h \
 	../includes/CPP/Windows/PropVariant.cpp ../inclues/CPP/Windows/StdAfx.h
 
-EXTRA_DIST = ReadMe.txt Lib7Zip.vcproj 
+EXTRA_DIST = Lib7Zip.vcproj 
 
 DISTCLEANFILES = ../includes/CPP ../includes/C
 

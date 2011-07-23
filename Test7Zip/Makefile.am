@@ -12,4 +12,4 @@ test7zip_LDADD = ../Lib7Zip/lib7zip.a \
 test7zipmulti_LDADD = ../Lib7Zip/lib7zip.a \
 	-ldl
 
-EXTRA_DIST = ReadMe.txt Test7Zip.vcproj
+EXTRA_DIST = Test7Zip.vcproj
