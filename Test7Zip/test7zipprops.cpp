@@ -89,6 +89,7 @@ public:
 };
 
 const wchar_t * index_names[] = {
+	L"kpidSize",
 		L"kpidPackSize", //(Packed Size)
 		L"kpidAttrib", //(Attributes)
 		L"kpidCTime", //(Created)
@@ -150,8 +151,8 @@ int main(int argc, char * argv[])
 			unsigned int numItems = 0;
 			
 			//print archive properties
-			for(lib7zip::PropertyIndexEnum index = lib7zip::kpidPackSize;
-				index <= lib7zip::kpidIsDir;
+			for(lib7zip::PropertyIndexEnum index = lib7zip::PROP_INDEX_BEGIN;
+				index < lib7zip::PROP_INDEX_END;
 				index = (lib7zip::PropertyIndexEnum)(index + 1)) {
 				wstring strVal = L"";
 				unsigned __int64 val = 0;
@@ -198,8 +199,8 @@ int main(int argc, char * argv[])
 							pArchiveItem->IsDir());
 
 					wprintf(L"get all properties\n");
-					for(lib7zip::PropertyIndexEnum index = lib7zip::kpidPackSize;
-						index <= lib7zip::kpidIsDir;
+					for(lib7zip::PropertyIndexEnum index = lib7zip::PROP_INDEX_BEGIN;
+						index <= lib7zip::PROP_INDEX_END;
 						index = (lib7zip::PropertyIndexEnum)(index + 1)) {
 						wstring strVal = L"";
 						unsigned __int64 val = 0;

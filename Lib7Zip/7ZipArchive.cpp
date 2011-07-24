@@ -283,6 +283,9 @@ bool C7ZipArchiveImpl::GetUInt64Property(lib7zip::PropertyIndexEnum propertyInde
 	int p7zip_index = 0;
 
 	switch(propertyIndex) {
+	case lib7zip::kpidSize:
+		p7zip_index = kpidSize;
+		break;
 	case lib7zip::kpidPackSize: //(Packed Size)
 		p7zip_index = kpidPackSize;
 		break;

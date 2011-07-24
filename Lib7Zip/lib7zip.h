@@ -50,7 +50,9 @@ private:
 
 namespace lib7zip {
 	enum PropertyIndexEnum {
-		kpidPackSize, //(Packed Size)
+		PROP_INDEX_BEGIN,
+
+		kpidPackSize = PROP_INDEX_BEGIN, //(Packed Size)
 		kpidAttrib, //(Attributes)
 		kpidCTime, //(Created)
 		kpidATime, //(Accessed)
@@ -71,6 +73,9 @@ namespace lib7zip {
 		kpidVolumeName, //(Label)
 		kpidPath, //(FullPath)
 		kpidIsDir, //(IsDir)
+		kpidSize, //(Uncompressed Size)
+
+		PROP_INDEX_END
 	};
 };
 
