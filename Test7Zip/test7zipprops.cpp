@@ -148,6 +148,42 @@ int main(int argc, char * argv[])
 
 		if (lib.OpenArchive(&stream, &pArchive)) {
 			unsigned int numItems = 0;
+			
+			//print archive properties
+			for(lib7zip::PropertyIndexEnum index = lib7zip::kpidPackSize;
+				index <= lib7zip::kpidIsDir;
+				index = (lib7zip::PropertyIndexEnum)(index + 1)) {
+				wstring strVal = L"";
+				unsigned __int64 val = 0;
+				bool bVal = false;
+
+				bool result = pArchive->GetUInt64Property(index, val);
+
+				wprintf(L"\n\nGetArciveProperty:%d %ls\n", (int)index, 
+						index_names[(int)index]);
+
+				wprintf(L"Archive UInt64 result:%ls val=%ld\n", 
+						result ? L"true" : L"false",
+						val);
+
+				result = pArchive->GetBoolProperty(index, bVal);
+
+				wprintf(L"Archive Bool result:%ls val=%ls\n", 
+						result ? L"true" : L"false",
+						bVal ? L"true" : L"false");
+
+				result = pArchive->GetStringProperty(index, strVal);
+
+				wprintf(L"Archive String result:%ls val=%ls\n", 
+						result ? L"true" : L"false",
+						strVal.c_str());				
+
+				result = pArchive->GetFileTimeProperty(index, val);
+
+				wprintf(L"Archive FileTime result:%ls val=%ld\n", 
+						result ? L"true" : L"false",
+						val);				
+			}
 
 			pArchive->GetItemCount(&numItems);
 

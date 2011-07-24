@@ -128,6 +128,15 @@ public:
 	virtual bool Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutStream * pOutStream) = 0;
 	
 	virtual void Close() = 0;
+
+	virtual bool GetUInt64Property(lib7zip::PropertyIndexEnum propertyIndex,
+											   unsigned __int64 & val) const = 0;
+	virtual bool GetBoolProperty(lib7zip::PropertyIndexEnum propertyIndex,
+								 bool & val) const = 0;
+	virtual bool GetStringProperty(lib7zip::PropertyIndexEnum propertyIndex,
+									  wstring & val) const = 0;
+	virtual bool GetFileTimeProperty(lib7zip::PropertyIndexEnum propertyIndex,
+									 unsigned __int64 & val) const = 0;
 };
 
 class C7ZipLibrary
