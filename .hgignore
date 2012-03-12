@@ -1,0 +1,7 @@
+stocktools/data
+.*\.pbxuser
+.*\.perspectivev.?
+\.DS_Store
+build
+linux-build
+\.svn
