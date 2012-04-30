@@ -28,6 +28,9 @@ public:
 	virtual bool IsDir() const;
 	virtual bool IsEncrypted() const;
 	virtual unsigned int GetArchiveIndex() const;
+	virtual wstring GetArchiveItemPassword() const;
+	virtual void SetArchiveItemPassword(const wstring & password);
+	bool IsPasswordSet() const;
 
 	virtual bool GetUInt64Property(lib7zip::PropertyIndexEnum propertyIndex,
 								   unsigned __int64 & val) const;
@@ -40,6 +43,7 @@ public:
 private:
 	CMyComPtr<IInArchive> m_pInArchive;
 	unsigned int m_nIndex;
+	wstring m_Password;
 };
 
 C7ZipArchiveItemImpl::C7ZipArchiveItemImpl(IInArchive * pInArchive,
@@ -106,6 +110,22 @@ unsigned int C7ZipArchiveItemImpl::GetArchiveIndex() const
 {
 	return m_nIndex;
 }
+
+wstring C7ZipArchiveItemImpl::GetArchiveItemPassword() const
+{
+	return m_Password;
+}
+
+void C7ZipArchiveItemImpl::SetArchiveItemPassword(const wstring & password)
+{
+	m_Password = password;
+}
+
+bool C7ZipArchiveItemImpl::IsPasswordSet() const
+{
+	return !(m_Password == L"");
+}
+
 
 bool C7ZipArchiveItemImpl::GetUInt64Property(lib7zip::PropertyIndexEnum propertyIndex,
 											 unsigned __int64 & val) const

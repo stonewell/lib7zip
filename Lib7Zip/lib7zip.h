@@ -2,12 +2,12 @@
 #define __LIB_7ZIP_H__
 
 #define LIB_7ZIP_VER_MAJOR 1
-#define LIB_7ZIP_VER_MINOR 4
+#define LIB_7ZIP_VER_MINOR 5
 #define LIB_7ZIP_VER_BUILD 0
-#define LIB_7ZIP_VERSION "1.40"
-#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 1.40"
-#define LIB_7ZIP_DATE "2011-07"
-#define LIB_7ZIP_COPYRIGHT "Copyright (c) 2009-2011"
+#define LIB_7ZIP_VERSION "1.50"
+#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 1.50"
+#define LIB_7ZIP_DATE "2012-04"
+#define LIB_7ZIP_COPYRIGHT "Copyright (c) 2009-2012"
 #define LIB_7ZIP_VERSION_COPYRIGHT_DATE MY_VERSION "  " MY_COPYRIGHT "  " MY_DATE
 
 #include <string>
@@ -17,7 +17,9 @@
 #define __int64 long long int
 typedef std::basic_string<wchar_t> wstring;
 typedef std::basic_string<char> string;
+#ifndef CLASS_E_CLASSNOTAVAILABLE
 #define CLASS_E_CLASSNOTAVAILABLE (0x80040111L)
+#endif
 #define FILE_BEGIN           0
 #define FILE_CURRENT         1
 #define FILE_END             2
@@ -101,6 +103,9 @@ public:
 									  wstring & val) const = 0;
 	virtual bool GetFileTimeProperty(lib7zip::PropertyIndexEnum propertyIndex,
 									 unsigned __int64 & val) const = 0;
+	virtual wstring GetArchiveItemPassword() const  = 0;
+	virtual void SetArchiveItemPassword(const wstring & password) = 0;
+	virtual bool IsPasswordSet() const = 0;
 };
 
 class C7ZipInStream
@@ -130,7 +135,11 @@ public:
 	virtual bool GetItemCount(unsigned int * pNumItems) = 0;
 	virtual bool GetItemInfo(unsigned int index, C7ZipArchiveItem ** ppArchiveItem) = 0;
 	virtual bool Extract(unsigned int index, C7ZipOutStream * pOutStream) = 0;
+	virtual bool Extract(unsigned int index, C7ZipOutStream * pOutStream, const wstring & pwd) = 0;
 	virtual bool Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutStream * pOutStream) = 0;
+	virtual wstring GetArchivePassword() const  = 0;
+	virtual void SetArchivePassword(const wstring & password) = 0;
+	virtual bool IsPasswordSet() const = 0;
 	
 	virtual void Close() = 0;
 
@@ -163,6 +172,7 @@ public:
 	bool GetSupportedExts(WStringArray & exts);
 
 	bool OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive);
+	bool OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive, const wstring & pwd);
 
     const C7ZipObjectPtrArray & GetInternalObjectsArray() { return m_InternalObjectsArray; }
 
