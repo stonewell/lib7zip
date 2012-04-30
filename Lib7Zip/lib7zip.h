@@ -2,12 +2,12 @@
 #define __LIB_7ZIP_H__
 
 #define LIB_7ZIP_VER_MAJOR 1
-#define LIB_7ZIP_VER_MINOR 4
+#define LIB_7ZIP_VER_MINOR 5
 #define LIB_7ZIP_VER_BUILD 0
-#define LIB_7ZIP_VERSION "1.40"
-#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 1.40"
-#define LIB_7ZIP_DATE "2011-07"
-#define LIB_7ZIP_COPYRIGHT "Copyright (c) 2009-2011"
+#define LIB_7ZIP_VERSION "1.50"
+#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 1.50"
+#define LIB_7ZIP_DATE "2012-04"
+#define LIB_7ZIP_COPYRIGHT "Copyright (c) 2009-2012"
 #define LIB_7ZIP_VERSION_COPYRIGHT_DATE MY_VERSION "  " MY_COPYRIGHT "  " MY_DATE
 
 #include <string>
