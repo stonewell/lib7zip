@@ -1,2 +1,2 @@
-EXTRA_DIST = 
+EXTRA_DIST = Makefile.in
 
