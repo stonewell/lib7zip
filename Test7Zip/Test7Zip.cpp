@@ -93,6 +93,91 @@ public:
 	}
 };
 
+class TestOutStream : public C7ZipOutStream
+{
+private:
+	FILE * m_pFile;
+	std::string m_strFileName;
+	wstring m_strFileExt;
+	int m_nFileSize;
+public:
+	TestOutStream(std::string fileName) :
+	  m_strFileName(fileName),
+	  m_strFileExt(L"7z")
+	{
+		m_pFile = fopen(fileName.c_str(), "wb");
+		m_nFileSize = 0;
+
+		int pos = m_strFileName.find_last_of(".");
+
+		if (pos != m_strFileName.npos)
+		{
+#ifdef _WIN32
+			std::string tmp = m_strFileName.substr(pos + 1);
+			int nLen = MultiByteToWideChar(CP_ACP, 0, tmp.c_str(), -1, NULL, NULL);
+			LPWSTR lpszW = new WCHAR[nLen];
+			MultiByteToWideChar(CP_ACP, 0, 
+			   tmp.c_str(), -1, lpszW, nLen);
+			m_strFileExt = lpszW;
+			// free the string
+			delete[] lpszW;
+#else
+			m_strFileExt = L"7z";
+#endif
+		}
+		wprintf(L"Ext:%ls\n", m_strFileExt.c_str());
+	}
+
+	virtual ~TestOutStream()
+	{
+		fclose(m_pFile);
+	}
+
+public:
+	int GetFileSize() const 
+	{
+		return m_nFileSize;
+	}
+
+	virtual int Write(const void *data, unsigned int size, unsigned int *processedSize)
+	{
+		int count = fwrite(data, 1, size, m_pFile);
+		wprintf(L"Write:%d %d\n", size, count);
+
+		if (count >= 0)
+		{
+			if (processedSize != NULL)
+				*processedSize = count;
+
+			m_nFileSize += count;
+			return 0;
+		}
+
+		return 1;
+	}
+
+	virtual int Seek(__int64 offset, unsigned int seekOrigin, unsigned __int64 *newPosition)
+	{
+		int result = fseek(m_pFile, (long)offset, seekOrigin);
+
+		if (!result)
+		{
+			if (newPosition)
+				*newPosition = ftell(m_pFile);
+
+			return 0;
+		}
+
+		return result;
+	}
+
+	virtual int SetSize(unsigned __int64 size)
+	{
+		wprintf(L"SetFileSize:%ld\n", size);
+		return 0;
+	}
+};
+
 #ifdef _WIN32
 int _tmain(int argc, _TCHAR* argv[])
 #else
@@ -132,6 +217,7 @@ int main(int argc, char * argv[])
 	C7ZipArchive * pArchive = NULL;
 
 	TestInStream stream("Test7Zip.7z");
+	TestOutStream oStream("TestResult.txt");
 	if (lib.OpenArchive(&stream, &pArchive))
 	{
 		unsigned int numItems = 0;
@@ -146,9 +232,17 @@ int main(int argc, char * argv[])
 
 			if (pArchive->GetItemInfo(i, &pArchiveItem))
 			{
-				wprintf(L"%d,%ls,%d\n", pArchiveItem->GetArchiveIndex(),
+				wprintf(L"Index=%d,path=%ls,IsDir=%d, isEncrypted=%d\n", pArchiveItem->GetArchiveIndex(),
 					pArchiveItem->GetFullPath().c_str(),
-					pArchiveItem->IsDir());
+						pArchiveItem->IsDir(),
+						pArchiveItem->IsEncrypted());
+				//set archive password or item password
+				pArchive->SetArchivePassword(L"test");
+				if (i==0) {
+					//Or set password for each archive item
+					//pArchiveItem->SetArchiveItemPassword(L"test");
+					pArchive->Extract(pArchiveItem, &oStream);
+				}
 			}
 		}
 	}

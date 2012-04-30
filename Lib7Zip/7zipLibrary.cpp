@@ -115,7 +115,7 @@ class CArchiveOpenCallback:
 public:
     MY_UNKNOWN_IMP1(ICryptoGetTextPassword)
 
-        STDMETHOD(SetTotal)(const UInt64 *files, const UInt64 *bytes);
+	STDMETHOD(SetTotal)(const UInt64 *files, const UInt64 *bytes);
     STDMETHOD(SetCompleted)(const UInt64 *files, const UInt64 *bytes);
 
     STDMETHOD(CryptoGetTextPassword)(BSTR *password);
@@ -138,7 +138,7 @@ public:
 public:
     MY_UNKNOWN_IMP2(IInStream, IStreamGetSize)
 
-        STDMETHOD(Read)(void *data, UInt32 size, UInt32 *processedSize);
+	STDMETHOD(Read)(void *data, UInt32 size, UInt32 *processedSize);
     STDMETHOD(Seek)(Int64 offset, UInt32 seekOrigin, UInt64 *newPosition);
 
     STDMETHOD(GetSize)(UInt64 *size);
@@ -157,6 +157,7 @@ public:
 public:
     bool GetSupportedExts(WStringArray & exts);
     bool OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive);
+	bool OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive, const wstring & pwd);
     bool IsInitialized() const { return m_bInitialized; }
     C7ZipLibrary * GetLibrary() const { return m_pLibrary; }
     const C7ZipObjectPtrArray & GetFormatInfoArray() const { return m_FormatInfoArray; }
@@ -182,8 +183,8 @@ private:
 };
 
 class C7ZipCompressCodecsInfo : public ICompressCodecsInfo,
-    public CMyUnknownImp,
-    public virtual C7ZipObject
+								public CMyUnknownImp,
+								public virtual C7ZipObject
 {
 public:
     C7ZipCompressCodecsInfo(C7ZipLibrary * pLibrary);
@@ -213,70 +214,70 @@ static bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & format
 {
     if (pFunctions->v.GetHandlerProperty == NULL &&
         pFunctions->v.GetHandlerProperty2 == NULL)
-    {
-        return false;
-    }
+		{
+			return false;
+		}
 
     UInt32 numFormats = 1;
 
     if (pFunctions->v.GetNumberOfFormats != NULL)
-    {
-        RBOOLOK(pFunctions->v.GetNumberOfFormats(&numFormats));
-    }
+		{
+			RBOOLOK(pFunctions->v.GetNumberOfFormats(&numFormats));
+		}
 
     if (pFunctions->v.GetHandlerProperty2 == NULL)
         numFormats = 1;
 
     for(UInt32 i = 0; i < numFormats; i++)
-    {
-        wstring name;
-        bool updateEnabled = false;
-        bool keepName = false;
-        GUID classID;
-        wstring ext, addExt;
+		{
+			wstring name;
+			bool updateEnabled = false;
+			bool keepName = false;
+			GUID classID;
+			wstring ext, addExt;
 
-        if (ReadStringProp(pFunctions->v.GetHandlerProperty, 
-            pFunctions->v.GetHandlerProperty2, i, NArchive::kName, name) != S_OK)
-            continue;
+			if (ReadStringProp(pFunctions->v.GetHandlerProperty, 
+							   pFunctions->v.GetHandlerProperty2, i, NArchive::kName, name) != S_OK)
+				continue;
 
-        NWindows::NCOM::CPropVariant prop;
-        if (ReadProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, 
-            i, NArchive::kClassID, prop) != S_OK)
-            continue;
-        if (prop.vt != VT_BSTR)
-            continue;
+			NWindows::NCOM::CPropVariant prop;
+			if (ReadProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, 
+						 i, NArchive::kClassID, prop) != S_OK)
+				continue;
+			if (prop.vt != VT_BSTR)
+				continue;
 
-        classID = *(const GUID *)prop.bstrVal;
+			classID = *(const GUID *)prop.bstrVal;
 
-        if (ReadStringProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, 
-            i, NArchive::kExtension, ext) != S_OK)
-            continue;
+			if (ReadStringProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, 
+							   i, NArchive::kExtension, ext) != S_OK)
+				continue;
 
-        if (ReadStringProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, 
-            i, NArchive::kAddExtension, addExt) != S_OK)
-            continue;
+			if (ReadStringProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, 
+							   i, NArchive::kAddExtension, addExt) != S_OK)
+				continue;
 
-        ReadBoolProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, i, 
-            NArchive::kUpdate, updateEnabled);
+			ReadBoolProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, i, 
+						 NArchive::kUpdate, updateEnabled);
 
-        if (updateEnabled)
-        {
-            ReadBoolProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, 
-                i, NArchive::kKeepName, keepName);
-        }
+			if (updateEnabled)
+				{
+					ReadBoolProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, 
+								 i, NArchive::kKeepName, keepName);
+				}
 
-        C7ZipFormatInfo * pInfo = new C7ZipFormatInfo();
-        pInfo->m_Name = name;
-        pInfo->m_KeepName = keepName;
-        pInfo->m_ClassID = classID;
-        pInfo->m_UpdateEnabled = updateEnabled;
+			C7ZipFormatInfo * pInfo = new C7ZipFormatInfo();
+			pInfo->m_Name = name;
+			pInfo->m_KeepName = keepName;
+			pInfo->m_ClassID = classID;
+			pInfo->m_UpdateEnabled = updateEnabled;
 
-        SplitString(ext, pInfo->Exts);
-        SplitString(addExt, pInfo->AddExts);
+			SplitString(ext, pInfo->Exts);
+			SplitString(addExt, pInfo->AddExts);
 
-        pInfo->FormatIndex = i;
-        formats.push_back(pInfo);
-    }
+			pInfo->FormatIndex = i;
+			formats.push_back(pInfo);
+		}
 
     return true;
 }
@@ -293,71 +294,69 @@ static bool LoadCodecs(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & codecIn
     RBOOLOK(pFunctions->v.GetNumberOfMethods(&numMethods));
 
     for(UInt32 i = 0; i < numMethods; i++)
-    {
-        wstring name = L"";
-        GUID classID;
-        memset(&classID, 0, sizeof(GUID));
+		{
+			wstring name = L"";
+			GUID classID;
+			memset(&classID, 0, sizeof(GUID));
 
-/*
-        if(GetMethodPropertyString(pFunctions->v.GetMethodProperty, i, 
-            NMethodPropID::kName, name) != S_OK)
-            continue;
+			/*
+			  if(GetMethodPropertyString(pFunctions->v.GetMethodProperty, i, 
+			  NMethodPropID::kName, name) != S_OK)
+			  continue;
 
-        if (GetMethodPropertyGUID(pFunctions->v.GetMethodProperty, i, 
-            NMethodPropID::kID, classID) != S_OK)
-            continue;
-*/
+			  if (GetMethodPropertyGUID(pFunctions->v.GetMethodProperty, i, 
+			  NMethodPropID::kID, classID) != S_OK)
+			  continue;
+			*/
 
-        GUID encoder, decoder;
-        bool encoderIsAssigned, decoderIsAssigned;
+			GUID encoder, decoder;
+			bool encoderIsAssigned, decoderIsAssigned;
 
-        if (GetCoderClass(pFunctions->v.GetMethodProperty, i, 
-            NMethodPropID::kEncoder, encoder, encoderIsAssigned) != S_OK)
-            continue;
-        if (GetCoderClass(pFunctions->v.GetMethodProperty, i, 
-            NMethodPropID::kDecoder, decoder, decoderIsAssigned) != S_OK)
-            continue;
+			if (GetCoderClass(pFunctions->v.GetMethodProperty, i, 
+							  NMethodPropID::kEncoder, encoder, encoderIsAssigned) != S_OK)
+				continue;
+			if (GetCoderClass(pFunctions->v.GetMethodProperty, i, 
+							  NMethodPropID::kDecoder, decoder, decoderIsAssigned) != S_OK)
+				continue;
 
-        C7ZipCodecInfo * pInfo = new C7ZipCodecInfo();
-        pInfo->Functions = pFunctions;
+			C7ZipCodecInfo * pInfo = new C7ZipCodecInfo();
+			pInfo->Functions = pFunctions;
 
-        pInfo->m_Name = name;
-        pInfo->m_ClassID = classID;
+			pInfo->m_Name = name;
+			pInfo->m_ClassID = classID;
 
-        pInfo->Encoder = encoder;
-        pInfo->EncoderAssigned = encoderIsAssigned;
+			pInfo->Encoder = encoder;
+			pInfo->EncoderAssigned = encoderIsAssigned;
 
-        pInfo->Decoder = decoder;
-        pInfo->DecoderAssigned = decoderIsAssigned;
+			pInfo->Decoder = decoder;
+			pInfo->DecoderAssigned = decoderIsAssigned;
 
-        pInfo->CodecIndex = i;
-        codecInfos.push_back(pInfo);
-    }
+			pInfo->CodecIndex = i;
+			codecInfos.push_back(pInfo);
+		}
 
     return true;
 }
 
 static int CreateInArchive(pU7ZipFunctions pFunctions,
-                       const C7ZipObjectPtrArray & formatInfos,
-                       wstring ext,
-                       CMyComPtr<IInArchive> &archive)
+						   const C7ZipObjectPtrArray & formatInfos,
+						   wstring ext,
+						   CMyComPtr<IInArchive> &archive)
 {
     for (C7ZipObjectPtrArray::const_iterator it = formatInfos.begin();
-        it != formatInfos.end();it++)
-    {
-        const C7ZipFormatInfo * pInfo = dynamic_cast<const C7ZipFormatInfo *>(*it);
+		 it != formatInfos.end();it++)
+		{
+			const C7ZipFormatInfo * pInfo = dynamic_cast<const C7ZipFormatInfo *>(*it);
 
-        for(WStringArray::const_iterator extIt = pInfo->Exts.begin(); extIt != pInfo->Exts.end(); extIt++)
-        {
-							wprintf(L"1. %ls: %ls\n", (*extIt).c_str(), ext.c_str());
-            if (MyStringCompareNoCase((*extIt).c_str(), ext.c_str()) == 0)
-            {
-							wprintf(L"2. %ls: %ls\n", (*extIt).c_str(), ext.c_str());
-                return pFunctions->v.CreateObject(&pInfo->m_ClassID, 
-                    &IID_IInArchive, (void **)&archive);
-            }
-        }
-    }
+			for(WStringArray::const_iterator extIt = pInfo->Exts.begin(); extIt != pInfo->Exts.end(); extIt++)
+				{
+					if (MyStringCompareNoCase((*extIt).c_str(), ext.c_str()) == 0)
+						{
+							return pFunctions->v.CreateObject(&pInfo->m_ClassID, 
+															  &IID_IInArchive, (void **)&archive);
+						}
+				}
+		}
 
     return CLASS_E_CLASSNOTAVAILABLE;
 }
@@ -366,37 +365,44 @@ static bool InternalOpenArchive(C7ZipLibrary * pLibrary,
                                 C7ZipDllHandler * pHandler,
                                 const wstring & ext, 
                                 IInStream * pInStream,
-                                C7ZipArchive ** ppArchive)
+                                C7ZipArchive ** ppArchive,
+								const wstring & pwd)
 {
     CMyComPtr<IInArchive> archive = NULL;
 
     RBOOLOK(CreateInArchive(pHandler->GetFunctions(),
-        pHandler->GetFormatInfoArray(),
-        ext,
-        archive));
+							pHandler->GetFormatInfoArray(),
+							ext,
+							archive));
 
     if (archive == NULL)
         return false;
 
-		wprintf(L"1\n");
+	wprintf(L"1\n");
     CMyComPtr<IInStream> inStream(pInStream); 
 
     CArchiveOpenCallback * pOpenCallBack = new CArchiveOpenCallback();
+    pOpenCallBack->PasswordIsDefined = pwd != L"";
+	pOpenCallBack->Password = pwd;
 
     CMyComPtr<IArchiveOpenCallback> openCallBack(pOpenCallBack);
 
     CMyComPtr<ISetCompressCodecsInfo> setCompressCodecsInfo;
     archive.QueryInterface(IID_ISetCompressCodecsInfo, (void **)&setCompressCodecsInfo);
     if (setCompressCodecsInfo)
-    {
-        C7ZipCompressCodecsInfo * pCompressCodecsInfo =
-            new C7ZipCompressCodecsInfo(pLibrary);
-        RBOOLOK(setCompressCodecsInfo->SetCompressCodecsInfo(pCompressCodecsInfo));
-    }
-		wprintf(L"2\n");
+		{
+			C7ZipCompressCodecsInfo * pCompressCodecsInfo =
+				new C7ZipCompressCodecsInfo(pLibrary);
+			RBOOLOK(setCompressCodecsInfo->SetCompressCodecsInfo(pCompressCodecsInfo));
+		}
+
     RBOOLOK(archive->Open(inStream, &kMaxCheckStartPosition, openCallBack));
-		wprintf(L"3\n");
-    return Create7ZipArchive(pLibrary, archive, ppArchive);
+    if (Create7ZipArchive(pLibrary, archive, ppArchive)) {
+		(*ppArchive)->SetArchivePassword(pwd);
+		return true;
+	}
+
+	return false;
 }
 
 /*------------------------ C7ZipObjectPtrArray ---------------------*/
@@ -412,12 +418,12 @@ C7ZipObjectPtrArray::~C7ZipObjectPtrArray()
 void C7ZipObjectPtrArray::clear()
 {
     if (m_bAutoRelease)
-    {
-        for(C7ZipObjectPtrArray::iterator it = begin(); it != end(); it ++)
-        {
-            delete *it;
-        }
-    }
+		{
+			for(C7ZipObjectPtrArray::iterator it = begin(); it != end(); it ++)
+				{
+					delete *it;
+				}
+		}
 
     std::vector<C7ZipObject *>::clear();
 }
@@ -457,7 +463,7 @@ C7ZipFormatInfo::~C7ZipFormatInfo()
 /*------------------------ C7ZipLibrary ---------------------*/
 
 C7ZipLibrary::C7ZipLibrary() :
-m_bInitialized(false)
+	m_bInitialized(false)
 {
 }
 
@@ -493,24 +499,24 @@ bool C7ZipLibrary::Initialize()
     C7ZipDllHandler * p7ZipHandler = new C7ZipDllHandler(this, pHandler);
 
     if (p7ZipHandler->IsInitialized())
-    {
-        m_InternalObjectsArray.push_back(p7ZipHandler);
+		{
+			m_InternalObjectsArray.push_back(p7ZipHandler);
 
-        m_bInitialized = true;
+			m_bInitialized = true;
 
 #ifdef _WIN32
-        LoadDllFromFolder(p7ZipHandler, L"Codecs", m_InternalObjectsArray);
-        LoadDllFromFolder(p7ZipHandler, L"Formats", m_InternalObjectsArray);
+			LoadDllFromFolder(p7ZipHandler, L"Codecs", m_InternalObjectsArray);
+			LoadDllFromFolder(p7ZipHandler, L"Formats", m_InternalObjectsArray);
 #else
-        LoadDllFromFolder(p7ZipHandler, "Codecs", m_InternalObjectsArray);
-        LoadDllFromFolder(p7ZipHandler, "Formats", m_InternalObjectsArray);
+			LoadDllFromFolder(p7ZipHandler, "Codecs", m_InternalObjectsArray);
+			LoadDllFromFolder(p7ZipHandler, "Formats", m_InternalObjectsArray);
 #endif
-    }
+		}
     else
-    {
-        delete p7ZipHandler;
-        m_bInitialized = false;
-    }
+		{
+			delete p7ZipHandler;
+			m_bInitialized = false;
+		}
 
     return m_bInitialized;
 }
@@ -524,14 +530,14 @@ bool C7ZipLibrary::GetSupportedExts(WStringArray & exts)
 
     for(C7ZipObjectPtrArray::iterator it = m_InternalObjectsArray.begin(); 
         it != m_InternalObjectsArray.end(); it++)
-    {
-        C7ZipDllHandler * pHandler = dynamic_cast<C7ZipDllHandler *>(*it);
+		{
+			C7ZipDllHandler * pHandler = dynamic_cast<C7ZipDllHandler *>(*it);
 
-        if (pHandler != NULL)
-        {
-            pHandler->GetSupportedExts(exts);
-        }
-    }
+			if (pHandler != NULL)
+				{
+					pHandler->GetSupportedExts(exts);
+				}
+		}
 
     return true;
 }
@@ -550,12 +556,12 @@ STDMETHODIMP CArchiveOpenCallback::SetCompleted(const UInt64 * /* files */, cons
 STDMETHODIMP CArchiveOpenCallback::CryptoGetTextPassword(BSTR *password)
 {
     if (!PasswordIsDefined)
-    {
-        // You can ask real password here from user
-        // Password = GetPassword(OutStream);
-        // PasswordIsDefined = true;
-        return E_ABORT;
-    }
+		{
+			// You can ask real password here from user
+			// Password = GetPassword(OutStream);
+			// PasswordIsDefined = true;
+			return E_ABORT;
+		}
 
 #ifdef _WIN32
     return StringToBstr(Password.c_str(), password);
@@ -570,19 +576,24 @@ STDMETHODIMP CArchiveOpenCallback::CryptoGetTextPassword(BSTR *password)
 
 bool C7ZipLibrary::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive)
 {
+	return OpenArchive(pInStream, ppArchive, L"");
+}
+
+bool C7ZipLibrary::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive, const wstring & pwd)
+{
     if (!m_bInitialized)
         return false;
 
     for(C7ZipObjectPtrArray::iterator it = m_InternalObjectsArray.begin(); 
         it != m_InternalObjectsArray.end(); it++)
-    {
-        C7ZipDllHandler * pHandler = dynamic_cast<C7ZipDllHandler *>(*it);
+		{
+			C7ZipDllHandler * pHandler = dynamic_cast<C7ZipDllHandler *>(*it);
 
-        if (pHandler != NULL && pHandler->OpenArchive(pInStream, ppArchive))
-        {
-            return true;
-        }
-    }
+			if (pHandler != NULL && pHandler->OpenArchive(pInStream, ppArchive, pwd))
+				{
+					return true;
+				}
+		}
 
     return false;
 }
@@ -607,7 +618,7 @@ C7ZipArchiveItem::~C7ZipArchiveItem()
 
 /*----------------- CInFileStreamWrap ---------------------*/
 CInFileStreamWrap::CInFileStreamWrap(C7ZipInStream * pInStream) :
-m_pInStream(pInStream)
+	m_pInStream(pInStream)
 {
 }
 
@@ -628,9 +639,9 @@ STDMETHODIMP CInFileStreamWrap::GetSize(UInt64 *size)
 
 /*------------------------------ C7ZipDllHandler ------------------------*/
 C7ZipDllHandler::C7ZipDllHandler(C7ZipLibrary * pLibrary, void * pHandler) :
-m_pLibrary(pLibrary),
-m_pHandler(pHandler),
-m_bInitialized(false)
+	m_pLibrary(pLibrary),
+	m_pHandler(pHandler),
+	m_bInitialized(false)
 {
     Initialize();
 }
@@ -660,11 +671,11 @@ void C7ZipDllHandler::Initialize()
         (SetLargePageModeFunc)GetProcAddress((HMODULE)m_pHandler, myT("SetLargePageMode"));
 
     if (pFunctions->v.IsValid())
-    {
-        m_bInitialized = LoadCodecs(pFunctions, m_CodecInfoArray);
+		{
+			m_bInitialized = LoadCodecs(pFunctions, m_CodecInfoArray);
 
-        m_bInitialized |= LoadFormats(pFunctions, m_FormatInfoArray);
-    }
+			m_bInitialized |= LoadFormats(pFunctions, m_FormatInfoArray);
+		}
 }
 
 void C7ZipDllHandler::Deinitialize()
@@ -687,33 +698,38 @@ bool C7ZipDllHandler::GetSupportedExts(WStringArray & exts)
         return false;
 
     for(C7ZipObjectPtrArray::iterator it = m_FormatInfoArray.begin(); it != m_FormatInfoArray.end(); it++)
-    {
-        C7ZipFormatInfo * pInfo = dynamic_cast<C7ZipFormatInfo *>(*it);
+		{
+			C7ZipFormatInfo * pInfo = dynamic_cast<C7ZipFormatInfo *>(*it);
 
-        for(WStringArray::iterator extIt = pInfo->Exts.begin(); extIt != pInfo->Exts.end(); extIt++)
-        {
-            exts.push_back(*extIt);
-        }
-    }
+			for(WStringArray::iterator extIt = pInfo->Exts.begin(); extIt != pInfo->Exts.end(); extIt++)
+				{
+					exts.push_back(*extIt);
+				}
+		}
 
     return true;
 }
 
 bool C7ZipDllHandler::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive)
 {
+	return OpenArchive(pInStream, ppArchive, L"");
+}
+
+bool C7ZipDllHandler::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive, const wstring & pwd)
+{
     wstring ext = pInStream->GetExt();
 
     if (ext.length() == 0)
-    {
-        //TODO: use signature to detect file format
-        return false;
-    }
+		{
+			//TODO: use signature to detect file format
+			return false;
+		}
 
     CInFileStreamWrap * pArchiveStream = new CInFileStreamWrap(pInStream);
 
     CMyComPtr<IInStream> inStream(pArchiveStream); 
 
-    return InternalOpenArchive(m_pLibrary, this, ext, inStream, ppArchive);
+    return InternalOpenArchive(m_pLibrary, this, ext, inStream, ppArchive, pwd);
 }
 
 #ifdef _WIN32
@@ -722,16 +738,16 @@ wstring C7ZipDllHandler::GetHandlerPath() const
     wchar_t buf[255] = {0};
 
     if (GetModuleFileName((HMODULE)m_pHandler, buf, 254) > 0)
-    {
-        wstring path = buf;
+		{
+			wstring path = buf;
 
-        size_t pos = path.rfind(L"\\");
+			size_t pos = path.rfind(L"\\");
 
-        if (pos != wstring::npos)
-        {
-            return path.substr(0, pos);
-        }
-    }
+			if (pos != wstring::npos)
+				{
+					return path.substr(0, pos);
+				}
+		}
 
     return L".";
 }
@@ -743,19 +759,19 @@ string C7ZipDllHandler::GetHandlerPath() const
     memset(&info, 0, sizeof(Dl_info));
 
     if (dladdr((void *)m_Functions.v.CreateObject,&info))
-    {
-        if (info.dli_fname != NULL)
-        {
-            string path = info.dli_fname;
+		{
+			if (info.dli_fname != NULL)
+				{
+					string path = info.dli_fname;
 
-            size_t pos = path.rfind("/");
+					size_t pos = path.rfind("/");
 
-            if (pos != string::npos)
-            {
-                return path.substr(0, pos);
-            }
-        }
-    }
+					if (pos != string::npos)
+						{
+							return path.substr(0, pos);
+						}
+				}
+		}
 
     return ".";
 }
@@ -779,36 +795,36 @@ bool LoadDllFromFolder(C7ZipDllHandler * pMainHandler,
         return false;
 
     do
-    {
-        if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
-        {
-            wstring dirname = data.cFileName;
+		{
+			if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
+				{
+					wstring dirname = data.cFileName;
 
-            if (dirname == L"." || dirname == L"..")
-            {
-            }
-            else
-            {
-                LoadDllFromFolder(pMainHandler, data.cFileName, handlers);
-            }
-        }
-        else
-        {
-            void * pHandler = LoadLibrary(data.cFileName);
+					if (dirname == L"." || dirname == L"..")
+						{
+						}
+					else
+						{
+							LoadDllFromFolder(pMainHandler, data.cFileName, handlers);
+						}
+				}
+			else
+				{
+					void * pHandler = LoadLibrary(data.cFileName);
 
-            C7ZipDllHandler * p7ZipHandler = new C7ZipDllHandler(pMainHandler->GetLibrary(), 
-                pHandler);
+					C7ZipDllHandler * p7ZipHandler = new C7ZipDllHandler(pMainHandler->GetLibrary(), 
+																		 pHandler);
 
-            if (p7ZipHandler->IsInitialized())
-            {
-                handlers.push_back(p7ZipHandler);
-            }
-            else
-            {
-                delete p7ZipHandler;
-            }
-        }
-    }
+					if (p7ZipHandler->IsInitialized())
+						{
+							handlers.push_back(p7ZipHandler);
+						}
+					else
+						{
+							delete p7ZipHandler;
+						}
+				}
+		}
     while(::FindNextFile(hFind, &data));
 
     ::FindClose(hFind);
@@ -841,9 +857,9 @@ bool LoadDllFromFolder(C7ZipDllHandler * pMainHandler, const string & folder_nam
     struct dirent **namelist = NULL;
 
     if (result == 0)
-    {
-        scandir( ".", &namelist,myselect,alphasort );
-    }
+		{
+			scandir( ".", &namelist,myselect,alphasort );
+		}
 
     result = chdir(current_dir);
 
@@ -866,52 +882,52 @@ int myselect(const struct dirent * pDir )
     const char * szEntryName = pDir->d_name;
 
     if ( ( strcasecmp( szEntryName,"." ) == 0 ) ||
-        ( strcasecmp( szEntryName,".." ) == 0 ) )
-    {
-        return 0;
-    }
+		 ( strcasecmp( szEntryName,".." ) == 0 ) )
+		{
+			return 0;
+		}
 
     DIR * pTmpDir = NULL;
 
     if ( NULL == ( pTmpDir = opendir(szEntryName) ) )
-    {
-        if ( errno == ENOTDIR )
-        {
-            char * current_path = getcwd(NULL, 0);
-            string path = current_path;
-            path += "/";
-            path += szEntryName;
-            free(current_path);
+		{
+			if ( errno == ENOTDIR )
+				{
+					char * current_path = getcwd(NULL, 0);
+					string path = current_path;
+					path += "/";
+					path += szEntryName;
+					free(current_path);
 
-            void * pHandler = dlopen(path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+					void * pHandler = dlopen(path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
 
-            if (pHandler != NULL)
-            {
-                C7ZipDllHandler * p7ZipHandler = new C7ZipDllHandler(g_pLibrary, pHandler);
+					if (pHandler != NULL)
+						{
+							C7ZipDllHandler * p7ZipHandler = new C7ZipDllHandler(g_pLibrary, pHandler);
 
-                if (p7ZipHandler->IsInitialized())
-                {
-                    g_pHandlers->push_back(p7ZipHandler);
-                }
-                else
-                {
-                    delete p7ZipHandler;
-                }
-            }
-        }
-    }
+							if (p7ZipHandler->IsInitialized())
+								{
+									g_pHandlers->push_back(p7ZipHandler);
+								}
+							else
+								{
+									delete p7ZipHandler;
+								}
+						}
+				}
+		}
     else
-    {
-        closedir( pTmpDir );
+		{
+			closedir( pTmpDir );
 
-        int result = chdir( szEntryName );
+			int result = chdir( szEntryName );
 
-        struct dirent **namelist = NULL;
+			struct dirent **namelist = NULL;
 
-        scandir( ".",&namelist,myselect,alphasort );
+			scandir( ".",&namelist,myselect,alphasort );
 
-        result = chdir( ".." );
-    }
+			result = chdir( ".." );
+		}
 
     return 0;
 }
@@ -919,8 +935,8 @@ int myselect(const struct dirent * pDir )
 
 /*----------------------- C7ZipCompressCodecsInfo -------------------------*/
 C7ZipCompressCodecsInfo::C7ZipCompressCodecsInfo(C7ZipLibrary * pLibrary) :
-m_pLibrary(pLibrary),
-m_CodecInfoArray(false)
+	m_pLibrary(pLibrary),
+	m_CodecInfoArray(false)
 {
     InitData();
 }
@@ -939,20 +955,20 @@ void C7ZipCompressCodecsInfo::InitData()
 
     for(C7ZipObjectPtrArray::const_iterator it = handlers.begin(); 
         it != handlers.end(); it++)
-    {
-        C7ZipDllHandler * pHandler = dynamic_cast<C7ZipDllHandler *>(*it);
+		{
+			C7ZipDllHandler * pHandler = dynamic_cast<C7ZipDllHandler *>(*it);
 
-        if (pHandler != NULL)
-        {
-            const C7ZipObjectPtrArray & codecs = pHandler->GetCodecInfoArray();
+			if (pHandler != NULL)
+				{
+					const C7ZipObjectPtrArray & codecs = pHandler->GetCodecInfoArray();
 
-            for(C7ZipObjectPtrArray::const_iterator itCodec = codecs.begin(); 
-                itCodec != codecs.end(); itCodec++)
-            {
-                m_CodecInfoArray.push_back(*itCodec);
-            }
-        }
-    }
+					for(C7ZipObjectPtrArray::const_iterator itCodec = codecs.begin(); 
+						itCodec != codecs.end(); itCodec++)
+						{
+							m_CodecInfoArray.push_back(*itCodec);
+						}
+				}
+		}
 }
 
 HRESULT C7ZipCompressCodecsInfo::GetNumberOfMethods(UInt32 *numMethods)
@@ -967,19 +983,19 @@ HRESULT C7ZipCompressCodecsInfo::GetProperty(UInt32 index, PROPID propID, PROPVA
     C7ZipCodecInfo * pCodec = dynamic_cast<C7ZipCodecInfo *>(m_CodecInfoArray[index]);
 
     if (propID == NMethodPropID::kDecoderIsAssigned)
-    {
-        NWindows::NCOM::CPropVariant propVariant;
-        propVariant = pCodec->DecoderAssigned;
-        propVariant.Detach(value);
-        return S_OK;
-    }
+		{
+			NWindows::NCOM::CPropVariant propVariant;
+			propVariant = pCodec->DecoderAssigned;
+			propVariant.Detach(value);
+			return S_OK;
+		}
     if (propID == NMethodPropID::kEncoderIsAssigned)
-    {
-        NWindows::NCOM::CPropVariant propVariant;
-        propVariant = pCodec->EncoderAssigned;
-        propVariant.Detach(value);
-        return S_OK;
-    }
+		{
+			NWindows::NCOM::CPropVariant propVariant;
+			propVariant = pCodec->EncoderAssigned;
+			propVariant.Detach(value);
+			return S_OK;
+		}
     return pCodec->Functions->v.GetMethodProperty(pCodec->CodecIndex, propID, value);
 }
 
@@ -989,8 +1005,8 @@ HRESULT C7ZipCompressCodecsInfo::CreateDecoder(UInt32 index, const GUID *interfa
 
     if (pCodec->DecoderAssigned)
         return pCodec->Functions->v.CreateObject(&pCodec->Decoder,
-            interfaceID,
-            coder);
+												 interfaceID,
+												 coder);
     return S_OK;
 }
 
@@ -1000,8 +1016,8 @@ HRESULT C7ZipCompressCodecsInfo::CreateEncoder(UInt32 index, const GUID *interfa
 
     if (pCodec->EncoderAssigned)
         return pCodec->Functions->v.CreateObject(&pCodec->Encoder,
-            interfaceID,
-            coder);
+												 interfaceID,
+												 coder);
     return S_OK;
 }
 

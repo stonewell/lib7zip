@@ -25,6 +25,9 @@ public:
 	virtual bool IsDir() const;
 	virtual bool IsEncrypted() const;
 	virtual unsigned int GetArchiveIndex() const;
+	virtual wstring GetArchiveItemPassword() const;
+	virtual void SetArchiveItemPassword(const wstring & password);
+	bool IsPasswordSet() const;
 
 private:
 	wstring m_FullPath;
@@ -32,6 +35,7 @@ private:
 	bool m_bIsDir;
 	bool m_bIsEncrypted;
 	unsigned int m_nIndex;
+	wstring m_Password;
 };
 
 C7ZipArchiveItemImpl::C7ZipArchiveItemImpl(wstring fullPath, UInt64 size, bool isDir, bool isEncrypted, unsigned int nIndex) :
@@ -70,6 +74,21 @@ bool C7ZipArchiveItemImpl::IsDir() const
 unsigned int C7ZipArchiveItemImpl::GetArchiveIndex() const
 {
 	return m_nIndex;
+}
+
+wstring C7ZipArchiveItemImpl::GetArchiveItemPassword() const
+{
+	return m_Password;
+}
+
+void C7ZipArchiveItemImpl::SetArchiveItemPassword(const wstring & password)
+{
+	m_Password = password;
+}
+
+bool C7ZipArchiveItemImpl::IsPasswordSet() const
+{
+	return !(m_Password == L"");
 }
 
 bool Create7ZipArchiveItem(C7ZipArchive * pArchive, 

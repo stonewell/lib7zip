@@ -17,7 +17,9 @@
 #define __int64 long long int
 typedef std::basic_string<wchar_t> wstring;
 typedef std::basic_string<char> string;
+#ifndef CLASS_E_CLASSNOTAVAILABLE
 #define CLASS_E_CLASSNOTAVAILABLE (0x80040111L)
+#endif
 #define FILE_BEGIN           0
 #define FILE_CURRENT         1
 #define FILE_END             2
@@ -55,11 +57,14 @@ public:
 	virtual ~C7ZipArchiveItem();
 
 public:
-	virtual wstring GetFullPath() const  = 0;
+	virtual wstring GetFullPath() const = 0;
 	virtual unsigned __int64 GetSize() const = 0;
 	virtual bool IsDir() const  = 0;
 	virtual bool IsEncrypted() const  = 0;
 	virtual unsigned int GetArchiveIndex() const  = 0;
+	virtual wstring GetArchiveItemPassword() const  = 0;
+	virtual void SetArchiveItemPassword(const wstring & password) = 0;
+	virtual bool IsPasswordSet() const = 0;
 };
 
 class C7ZipInStream
@@ -89,7 +94,11 @@ public:
 	virtual bool GetItemCount(unsigned int * pNumItems) = 0;
 	virtual bool GetItemInfo(unsigned int index, C7ZipArchiveItem ** ppArchiveItem) = 0;
 	virtual bool Extract(unsigned int index, C7ZipOutStream * pOutStream) = 0;
+	virtual bool Extract(unsigned int index, C7ZipOutStream * pOutStream, const wstring & pwd) = 0;
 	virtual bool Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutStream * pOutStream) = 0;
+	virtual wstring GetArchivePassword() const  = 0;
+	virtual void SetArchivePassword(const wstring & password) = 0;
+	virtual bool IsPasswordSet() const = 0;
 	
 	virtual void Close() = 0;
 };
@@ -113,6 +122,7 @@ public:
 	bool GetSupportedExts(WStringArray & exts);
 
 	bool OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive);
+	bool OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive, const wstring & pwd);
 
     const C7ZipObjectPtrArray & GetInternalObjectsArray() { return m_InternalObjectsArray; }
 
