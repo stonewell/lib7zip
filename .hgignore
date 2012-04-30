@@ -5,3 +5,7 @@ stocktools/data
 build
 linux-build
 \.svn
+\.deps
+.*\.po
+.*\.o
+autom4te\.cache
