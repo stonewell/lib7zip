@@ -9,6 +9,9 @@
 #include "CPP/Common/MyCom.h"
 #include "CPP/7zip/ICoder.h"
 #include "CPP/7zip/IPassword.h"
+#include "Common/ComTry.h"
+#include "Windows/PropVariant.h"
+using namespace NWindows;
 
 #include "stdlib.h"
 
@@ -114,21 +117,35 @@ class CArchiveOpenCallback:
     public CMyUnknownImp
 {
 public:
-    MY_UNKNOWN_IMP1(ICryptoGetTextPassword)
+	MY_UNKNOWN_IMP3(
+					IArchiveOpenVolumeCallback,
+					ICryptoGetTextPassword,
+					IArchiveOpenSetSubArchiveName
+					)
 
-    STDMETHOD(SetTotal)(const UInt64 *files, const UInt64 *bytes);
-    STDMETHOD(SetCompleted)(const UInt64 *files, const UInt64 *bytes);
+	INTERFACE_IArchiveOpenCallback(;)
+	INTERFACE_IArchiveOpenVolumeCallback(;)
 
     STDMETHOD(CryptoGetTextPassword)(BSTR *password);
 
-	// IArchiveOpenVolumeCallback
-	STDMETHOD(GetProperty)(PROPID propID, PROPVARIANT *value);
-	STDMETHOD(GetStream)(const wchar_t *name, IInStream **inStream);
+	STDMETHOD(SetSubArchiveName(const wchar_t *name))
+	{
+		_subArchiveMode = true;
+		_subArchiveName = name;
+		TotalSize = 0;
+		return  S_OK;
+	}
 
     bool PasswordIsDefined;
     wstring Password;
 
-    CArchiveOpenCallback() : PasswordIsDefined(false) {}
+	wstring _subArchiveName;
+	bool _subArchiveMode;
+	UInt64 TotalSize;
+
+    CArchiveOpenCallback() : PasswordIsDefined(false),
+							 _subArchiveMode(false) {
+	}
 };
 
 class CInFileStreamWrap:
@@ -820,11 +837,7 @@ bool LoadDllFromFolder(C7ZipDllHandler * pMainHandler,
 }
 #else
 
-#if defined(__WXMAC__) || defined(__APPLE__)
-int myselect(struct dirent * pDir );
-#else
 int myselect(const struct dirent * pDir );
-#endif
 
 static C7ZipObjectPtrArray * g_pHandlers = NULL;
 static C7ZipLibrary * g_pLibrary = NULL;
@@ -857,11 +870,7 @@ bool LoadDllFromFolder(C7ZipDllHandler * pMainHandler, const string & folder_nam
     return true;
 }
 
-#if defined(__WXMAC__) || defined(__APPLE__)
-int myselect(struct dirent * pDir )
-#else
 int myselect(const struct dirent * pDir )
-#endif
 {
     if ( NULL == pDir )
         return 0;
@@ -1011,7 +1020,28 @@ HRESULT C7ZipCompressCodecsInfo::CreateEncoder(UInt32 index, const GUID *interfa
 STDMETHODIMP CArchiveOpenCallback::GetProperty(PROPID propID, PROPVARIANT *value) 
 {
 	wprintf(L"GetProperty:%d\n", propID);
+	COM_TRY_BEGIN
+	NCOM::CPropVariant prop;
+	if (_subArchiveMode)
+		switch(propID)
+			{
+			case kpidName: prop = _subArchiveName.c_str(); break;
+			}
+	else
+		switch(propID)
+			{
+			case kpidName:  wprintf(L"kpidName\n"); prop = L"test.7z.001"; break;
+			case kpidIsDir:  wprintf(L"kpidIsDir\n"); break;
+			case kpidSize:  wprintf(L"kpidSize\n"); prop = (UInt64)102400; break;
+			case kpidAttrib:  wprintf(L"kpidAttrib\n"); break;
+			case kpidCTime:  wprintf(L"kpidCTime\n"); break;
+			case kpidATime:  wprintf(L"kpidATime\n"); break;
+			case kpidMTime:  wprintf(L"kpidMTime\n"); break;
+			}
+
+	prop.Detach(value);
 	return S_OK;
+	COM_TRY_END
 }
 
 STDMETHODIMP CArchiveOpenCallback::GetStream(const wchar_t *name, IInStream **inStream)
