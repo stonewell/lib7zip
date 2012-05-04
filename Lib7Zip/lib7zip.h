@@ -2,11 +2,11 @@
 #define __LIB_7ZIP_H__
 
 #define LIB_7ZIP_VER_MAJOR 1
-#define LIB_7ZIP_VER_MINOR 5
+#define LIB_7ZIP_VER_MINOR 6
 #define LIB_7ZIP_VER_BUILD 0
-#define LIB_7ZIP_VERSION "1.50"
-#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 1.50"
-#define LIB_7ZIP_DATE "2012-04"
+#define LIB_7ZIP_VERSION "1.60"
+#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 1.60"
+#define LIB_7ZIP_DATE "2012-05"
 #define LIB_7ZIP_COPYRIGHT "Copyright (c) 2009-2012"
 #define LIB_7ZIP_VERSION_COPYRIGHT_DATE MY_VERSION "  " MY_COPYRIGHT "  " MY_DATE
 
@@ -117,6 +117,15 @@ public:
 	virtual int GetSize(unsigned __int64 * size) = 0;
 };
 
+class C7ZipMultiVolumes
+{
+public:
+	virtual wstring GetFirstVolumeName() = 0;
+	virtual bool MoveToVolume(const wstring & volumeName) = 0;
+	virtual unsigned __int64 GetCurrentVolumeSize() = 0;
+	virtual C7ZipInStream * OpenCurrentVolumeStream() = 0;
+};
+
 class C7ZipOutStream
 {
 public:
@@ -163,7 +172,6 @@ private:
 	bool m_bInitialized;
 
 	C7ZipObjectPtrArray m_InternalObjectsArray;
-protected:
 
 public:
 	bool Initialize();
@@ -173,6 +181,8 @@ public:
 
 	bool OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive);
 	bool OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive, const wstring & pwd);
+	bool OpenMultiVolumeArchive(C7ZipMultiVolumes * pVolumes, C7ZipArchive ** ppArchive);
+	bool OpenMultiVolumeArchive(C7ZipMultiVolumes * pVolumes, C7ZipArchive ** ppArchive, const wstring & pwd);
 
     const C7ZipObjectPtrArray & GetInternalObjectsArray() { return m_InternalObjectsArray; }
 

@@ -298,6 +298,7 @@ int main(int argc, char * argv[])
 							result ? L"true" : L"false",
 							val);				
 				}
+
 				//set archive password or item password
 				pArchive->SetArchivePassword(L"test");
 				if (i==0) {
@@ -305,8 +306,8 @@ int main(int argc, char * argv[])
 					//pArchiveItem->SetArchiveItemPassword(L"test");
 					pArchive->Extract(pArchiveItem, &oStream);
 				}
-			}
-		}
+			} //if
+		}//for
 	}
 	else {
 		wprintf(L"open archive Test7Zip.7z fail\n");

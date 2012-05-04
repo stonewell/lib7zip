@@ -114,6 +114,7 @@ class CArchiveOpenCallback:
     public IArchiveOpenCallback,
     public ICryptoGetTextPassword,
 	public IArchiveOpenVolumeCallback,
+	public IArchiveOpenSetSubArchiveName,
     public CMyUnknownImp
 {
 public:
@@ -143,8 +144,13 @@ public:
 	bool _subArchiveMode;
 	UInt64 TotalSize;
 
-    CArchiveOpenCallback() : PasswordIsDefined(false),
-							 _subArchiveMode(false) {
+    C7ZipMultiVolumes * m_pMultiVolumes;
+	bool m_bMultiVolume;
+
+    CArchiveOpenCallback(C7ZipMultiVolumes * pMultiVolumes) : PasswordIsDefined(false),
+													  _subArchiveMode(false), 
+															  m_pMultiVolumes(pMultiVolumes),
+													   m_bMultiVolume(pMultiVolumes != NULL) {
 	}
 };
 
@@ -160,7 +166,7 @@ public:
 public:
     MY_UNKNOWN_IMP2(IInStream, IStreamGetSize)
 
-        STDMETHOD(Read)(void *data, UInt32 size, UInt32 *processedSize);
+    STDMETHOD(Read)(void *data, UInt32 size, UInt32 *processedSize);
     STDMETHOD(Seek)(Int64 offset, UInt32 seekOrigin, UInt64 *newPosition);
 
     STDMETHOD(GetSize)(UInt64 *size);
@@ -178,8 +184,7 @@ public:
 
 public:
     bool GetSupportedExts(WStringArray & exts);
-    bool OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive);
-	bool OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive, const wstring & pwd);
+    bool OpenArchive(C7ZipInStream * pInStream, C7ZipMultiVolumes * pMultiVolumes, C7ZipArchive ** ppArchive);
     bool IsInitialized() const { return m_bInitialized; }
     C7ZipLibrary * GetLibrary() const { return m_pLibrary; }
     const C7ZipObjectPtrArray & GetFormatInfoArray() const { return m_FormatInfoArray; }
@@ -385,11 +390,21 @@ static int CreateInArchive(pU7ZipFunctions pFunctions,
 
 static bool InternalOpenArchive(C7ZipLibrary * pLibrary,
                                 C7ZipDllHandler * pHandler,
-                                const wstring & ext, 
-                                IInStream * pInStream,
+								C7ZipInStream * pInStream,
                                 C7ZipArchive ** ppArchive)
 {
+    wstring ext = pInStream->GetExt();
+
+    if (ext.length() == 0)
+    {
+        return false;
+    }
+
     CMyComPtr<IInArchive> archive = NULL;
+
+    CInFileStreamWrap * pArchiveStream = new CInFileStreamWrap(pInStream);
+
+    CMyComPtr<IInStream> inStream(pArchiveStream); 
 
     RBOOLOK(CreateInArchive(pHandler->GetFunctions(),
         pHandler->GetFormatInfoArray(),
@@ -399,9 +414,7 @@ static bool InternalOpenArchive(C7ZipLibrary * pLibrary,
     if (archive == NULL)
         return false;
 
-    CMyComPtr<IInStream> inStream(pInStream); 
-
-    CArchiveOpenCallback * pOpenCallBack = new CArchiveOpenCallback();
+    CArchiveOpenCallback * pOpenCallBack = new CArchiveOpenCallback(NULL);
 
     CMyComPtr<IArchiveOpenCallback> openCallBack(pOpenCallBack);
 
@@ -415,6 +428,121 @@ static bool InternalOpenArchive(C7ZipLibrary * pLibrary,
     }
 
     RBOOLOK(archive->Open(inStream, &kMaxCheckStartPosition, openCallBack));
+
+    return Create7ZipArchive(pLibrary, archive, ppArchive);
+}
+
+static bool InternalOpenMultiVolumeArchive(C7ZipLibrary * pLibrary,
+                                C7ZipDllHandler * pHandler,
+								C7ZipMultiVolumes * pMultiVolumes,
+                                C7ZipArchive ** ppArchive)
+{
+	wstring firstVolumeName = pMultiVolumes->GetFirstVolumeName();
+
+	if (!pMultiVolumes->MoveToVolume(firstVolumeName))
+		return false;
+
+	C7ZipInStream * pInStream = pMultiVolumes->OpenCurrentVolumeStream();
+
+	if (pInStream == NULL)
+		return false;
+	
+    CMyComPtr<IInArchive> archive = NULL;
+
+    CInFileStreamWrap * pArchiveStream = new CInFileStreamWrap(pInStream);
+
+    CMyComPtr<IInStream> inStream(pArchiveStream); 
+
+    RBOOLOK(CreateInArchive(pHandler->GetFunctions(),
+        pHandler->GetFormatInfoArray(),
+		L"001",
+        archive));
+
+    if (archive == NULL)
+        return false;
+
+    CArchiveOpenCallback * pOpenCallBack = new CArchiveOpenCallback(pMultiVolumes);
+
+    CMyComPtr<IArchiveOpenCallback> openCallBack(pOpenCallBack);
+
+    CMyComPtr<ISetCompressCodecsInfo> setCompressCodecsInfo;
+    archive.QueryInterface(IID_ISetCompressCodecsInfo, (void **)&setCompressCodecsInfo);
+    if (setCompressCodecsInfo)
+    {
+        C7ZipCompressCodecsInfo * pCompressCodecsInfo =
+            new C7ZipCompressCodecsInfo(pLibrary);
+        RBOOLOK(setCompressCodecsInfo->SetCompressCodecsInfo(pCompressCodecsInfo));
+    }
+
+    RBOOLOK(archive->Open(inStream, &kMaxCheckStartPosition, openCallBack));
+
+	bool opened = false;
+	do {
+		UInt32 mainSubfile;
+		{
+			NCOM::CPropVariant prop;
+			RINOK(archive->GetArchiveProperty(kpidMainSubfile, &prop));
+			if (prop.vt == VT_UI4)
+				mainSubfile = prop.ulVal;
+			else {
+				opened = true;
+				break;
+			}
+			UInt32 numItems;
+			RINOK(archive->GetNumberOfItems(&numItems));
+			if (mainSubfile >= numItems)
+				break;
+		}
+
+		CMyComPtr<IInArchiveGetStream> getStream;
+	    if (archive->QueryInterface(IID_IInArchiveGetStream, (void **)&getStream) != S_OK || !getStream)
+			break;
+    
+		CMyComPtr<ISequentialInStream> subSeqStream;
+		if (getStream->GetStream(mainSubfile, &subSeqStream) != S_OK || !subSeqStream)
+			break;
+    
+		CMyComPtr<IInStream> subStream;
+		if (subSeqStream.QueryInterface(IID_IInStream, &subStream) != S_OK || !subStream)
+			break;
+    
+		wstring path;
+
+		NCOM::CPropVariant prop;
+		RINOK(archive->GetProperty(mainSubfile, kpidPath, &prop));
+		if (prop.vt == VT_BSTR)
+			path = prop.bstrVal;
+		else
+			break;
+
+		CMyComPtr<IArchiveOpenSetSubArchiveName> setSubArchiveName;
+		openCallBack->QueryInterface(IID_IArchiveOpenSetSubArchiveName, (void **)&setSubArchiveName);
+		if (setSubArchiveName) {
+			setSubArchiveName->SetSubArchiveName(path.c_str());
+		}
+
+		wstring extension;
+		{
+			int dotPos = path.rfind(L'.');
+			if (dotPos >= 0)
+				extension = path.substr(dotPos + 1);
+		}
+
+		RBOOLOK(CreateInArchive(pHandler->GetFunctions(),
+								pHandler->GetFormatInfoArray(),
+								extension,
+								archive));
+
+		if (archive == NULL)
+			break;
+
+		RBOOLOK(archive->Open(subStream, &kMaxCheckStartPosition, openCallBack));
+
+		opened = true;
+	} while(false);
+
+	if (!opened)
+		return false;
 
     return Create7ZipArchive(pLibrary, archive, ppArchive);
 }
@@ -598,13 +726,53 @@ bool C7ZipLibrary::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArch
     {
         C7ZipDllHandler * pHandler = dynamic_cast<C7ZipDllHandler *>(*it);
 
-        if (pHandler != NULL && pHandler->OpenArchive(pInStream, ppArchive))
+        if (pHandler != NULL && pHandler->OpenArchive(pInStream, NULL, ppArchive))
         {
             return true;
         }
     }
 
     return false;
+}
+
+bool C7ZipLibrary::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive, const wstring & pwd)
+{
+	if (OpenArchive(pInStream, ppArchive)) {
+		(*ppArchive)->SetArchivePassword(pwd);
+		return true;
+	}
+
+	return false;
+}
+
+bool C7ZipLibrary::OpenMultiVolumeArchive(C7ZipMultiVolumes * pMultiVolumes, C7ZipArchive ** ppArchive)
+{
+    if (!m_bInitialized)
+        return false;
+
+    for(C7ZipObjectPtrArray::iterator it = m_InternalObjectsArray.begin(); 
+        it != m_InternalObjectsArray.end(); it++)
+    {
+        C7ZipDllHandler * pHandler = dynamic_cast<C7ZipDllHandler *>(*it);
+
+        if (pHandler != NULL && pHandler->OpenArchive(NULL, pMultiVolumes, ppArchive))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool C7ZipLibrary::OpenMultiVolumeArchive(C7ZipMultiVolumes * pInStream, C7ZipArchive ** ppArchive, 
+										  const wstring & pwd)
+{
+	if (OpenMultiVolumeArchive(pInStream, ppArchive)) {
+		(*ppArchive)->SetArchivePassword(pwd);
+		return true;
+	}
+
+	return false;
 }
 
 /*------------------- C7ZipArchive -----------*/
@@ -719,21 +887,14 @@ bool C7ZipDllHandler::GetSupportedExts(WStringArray & exts)
     return true;
 }
 
-bool C7ZipDllHandler::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive)
+bool C7ZipDllHandler::OpenArchive(C7ZipInStream * pInStream, C7ZipMultiVolumes * pMultiVolumes, C7ZipArchive ** ppArchive)
 {
-    wstring ext = pInStream->GetExt();
+	if (pMultiVolumes != NULL)
+		return InternalOpenMultiVolumeArchive(m_pLibrary, this, pMultiVolumes, ppArchive);
+	else if (pInStream != NULL)
+		return InternalOpenArchive(m_pLibrary, this, pInStream, ppArchive);
 
-    if (ext.length() == 0)
-    {
-        //TODO: use signature to detect file format
-        return false;
-    }
-
-    CInFileStreamWrap * pArchiveStream = new CInFileStreamWrap(pInStream);
-
-    CMyComPtr<IInStream> inStream(pArchiveStream); 
-
-    return InternalOpenArchive(m_pLibrary, this, ext, inStream, ppArchive);
+	return false;
 }
 
 #ifdef _WIN32
@@ -1019,7 +1180,6 @@ HRESULT C7ZipCompressCodecsInfo::CreateEncoder(UInt32 index, const GUID *interfa
 
 STDMETHODIMP CArchiveOpenCallback::GetProperty(PROPID propID, PROPVARIANT *value) 
 {
-	wprintf(L"GetProperty:%d\n", propID);
 	COM_TRY_BEGIN
 	NCOM::CPropVariant prop;
 	if (_subArchiveMode)
@@ -1030,13 +1190,25 @@ STDMETHODIMP CArchiveOpenCallback::GetProperty(PROPID propID, PROPVARIANT *value
 	else
 		switch(propID)
 			{
-			case kpidName:  wprintf(L"kpidName\n"); prop = L"test.7z.001"; break;
-			case kpidIsDir:  wprintf(L"kpidIsDir\n"); break;
-			case kpidSize:  wprintf(L"kpidSize\n"); prop = (UInt64)102400; break;
-			case kpidAttrib:  wprintf(L"kpidAttrib\n"); break;
-			case kpidCTime:  wprintf(L"kpidCTime\n"); break;
-			case kpidATime:  wprintf(L"kpidATime\n"); break;
-			case kpidMTime:  wprintf(L"kpidMTime\n"); break;
+			case kpidName:  
+				{
+					if (m_bMultiVolume) {
+						prop = m_pMultiVolumes->GetFirstVolumeName().c_str(); 
+					}
+				}
+				break;
+			case kpidIsDir: prop = false; break;
+			case kpidSize:
+				{
+					if (m_bMultiVolume) {
+						prop = m_pMultiVolumes->GetCurrentVolumeSize();
+					}
+				}
+				break;
+			case kpidAttrib: prop = (UInt32)0; break;
+			case kpidCTime: prop = 0; break;
+			case kpidATime: prop = 0; break;
+			case kpidMTime: prop = 0; break;
 			}
 
 	prop.Detach(value);
@@ -1046,6 +1218,19 @@ STDMETHODIMP CArchiveOpenCallback::GetProperty(PROPID propID, PROPVARIANT *value
 
 STDMETHODIMP CArchiveOpenCallback::GetStream(const wchar_t *name, IInStream **inStream)
 {
-	wprintf(L"GetSTream %ls\n", name);
+	C7ZipInStream * pInStream = NULL;
+	if (m_bMultiVolume) {
+		if (!m_pMultiVolumes->MoveToVolume(name))
+			return S_FALSE;
+
+		pInStream = m_pMultiVolumes->OpenCurrentVolumeStream();
+	} else {
+		return S_FALSE;
+	}
+
+    CInFileStreamWrap * pArchiveStream = new CInFileStreamWrap(pInStream);
+
+    CMyComPtr<IInStream> inStreamTemp(pArchiveStream); 
+	*inStream = inStreamTemp.Detach();
 	return S_OK;
 }

@@ -5,66 +5,74 @@
 #include "../Lib7Zip/lib7zip.h"
 #include <iostream>
 
+#include <locale>
+#include <iostream>
+#include <string>
+#include <sstream>
+using namespace std ;
+       
+wstring widen( const string& str )
+{
+      wostringstream wstm ;
+      wstm.imbue(std::locale("en_US.utf8"));
+      const ctype<wchar_t>& ctfacet =
+      use_facet< ctype<wchar_t> >( wstm.getloc() ) ;
+      for( size_t i=0 ; i<str.size() ; ++i )
+      wstm << ctfacet.widen( str[i] ) ;
+      return wstm.str() ;
+}
+       
+string narrow( const wstring& str )
+{
+      ostringstream stm ;
+      stm.imbue(std::locale("C"));
+      const ctype<char>& ctfacet =
+      use_facet< ctype<char> >( stm.getloc() ) ;
+      for( size_t i=0 ; i<str.size() ; ++i )
+      stm << ctfacet.narrow( str[i], 0 ) ;
+      return stm.str() ;
+}
+
 class TestInStream : public C7ZipInStream
 {
 private:
 	FILE * m_pFile;
-	std::string m_strFileName;
+	wstring m_strFileName;
 	wstring m_strFileExt;
 	int m_nFileSize;
 public:
-	TestInStream(std::string fileName) :
+	TestInStream(wstring fileName) :
 	  m_strFileName(fileName),
-	  m_strFileExt(L"001")
+	  m_strFileExt(L"001"),
+	  m_pFile(NULL)
 	{
-		m_pFile = fopen(fileName.c_str(), "rb");
-		fseek(m_pFile, 0, SEEK_END);
-		m_nFileSize = ftell(m_pFile);
-		fseek(m_pFile, 0, SEEK_SET);
+		string f = narrow(fileName);
 
-		int pos = m_strFileName.find_last_of(".");
+		m_pFile = fopen(f.c_str(), "rb");
 
-		if (pos != m_strFileName.npos)
+		if (m_pFile)
 		{
-#ifdef _WIN32
-			std::string tmp = m_strFileName.substr(pos + 1);
-			int nLen = MultiByteToWideChar(CP_ACP, 0, tmp.c_str(), -1, NULL, NULL);
-			LPWSTR lpszW = new WCHAR[nLen];
-			MultiByteToWideChar(CP_ACP, 0, 
-			   tmp.c_str(), -1, lpszW, nLen);
-			m_strFileExt = lpszW;
-			// free the string
-			delete[] lpszW;
-#else
-			m_strFileExt = L"001";
-#endif
+			fseek(m_pFile, 0, SEEK_END);
+			m_nFileSize = ftell(m_pFile);
+			fseek(m_pFile, 0, SEEK_SET);
 		}
-		wprintf(L"Ext:%ls\n", m_strFileExt.c_str());
 	}
 
 	virtual ~TestInStream()
 	{
-		fclose(m_pFile);
+		if (m_pFile)
+			fclose(m_pFile);
 	}
 
 public:
 	virtual wstring GetExt() const
 	{
-		static int i = 0;
-
-		if (i == 0) {
-		wprintf(L"5555\n");
-		wprintf(L"GetExt:%ls\n", m_strFileExt.c_str());
-		i++;
-		//return m_strFileExt;
-		return L"001";
-		} else {
-			return L"7z";
-		}
+		return m_strFileExt;
 	}
 
 	virtual int Read(void *data, unsigned int size, unsigned int *processedSize)
 	{
+		wprintf(L"Read\n");
 		int count = fread(data, 1, size, m_pFile);
 		wprintf(L"Read:%d %d\n", size, count);
 
@@ -81,6 +89,7 @@ public:
 
 	virtual int Seek(__int64 offset, unsigned int seekOrigin, unsigned __int64 *newPosition)
 	{
+		wprintf(L"Seek\n");
 		int result = fseek(m_pFile, (long)offset, seekOrigin);
 		wprintf(L"Seek:%ld %ld\n", offset, result);
 		if (!result)
@@ -96,8 +105,156 @@ public:
 
 	virtual int GetSize(unsigned __int64 * size)
 	{
+		wprintf(L"Size\n");
 		if (size)
 			*size = m_nFileSize;
+		return 0;
+	}
+};
+
+class TestMultiVolumes : public C7ZipMultiVolumes
+{
+private:
+	FILE * m_pFile;
+	wstring m_strFileName;
+	int m_nFileSize;
+	wstring m_strCurVolume;
+	bool m_done;
+
+public:
+	TestMultiVolumes(wstring fileName) :
+	  m_strFileName(fileName),
+	  m_pFile(NULL)
+	{
+	}
+
+	virtual ~TestMultiVolumes()
+	{
+		if (m_pFile)
+			fclose(m_pFile);
+	}
+
+public:
+	virtual wstring GetFirstVolumeName() {
+		m_strCurVolume = m_strFileName;
+		MoveToVolume(m_strCurVolume);
+		return m_strCurVolume;
+	}
+	
+	virtual bool MoveToVolume(const wstring& volumeName) {
+		m_strCurVolume = volumeName;
+		wprintf(L"move to volume:%ls\n", volumeName.c_str());
+
+		if (m_pFile)
+			fclose(m_pFile);
+		m_pFile = NULL;
+		string f = narrow(volumeName);
+		wprintf(L"narrow volume:%s\n", f.c_str());
+
+		m_pFile = fopen(f.c_str(), "rb");
+
+		if (!m_pFile)
+			m_done = true;
+		else {
+		fseek(m_pFile, 0, SEEK_END);
+		m_nFileSize = ftell(m_pFile);
+		fseek(m_pFile, 0, SEEK_SET);
+		}
+
+		return !m_done;
+	}
+
+	virtual C7ZipInStream * OpenCurrentVolumeStream() {
+		return new TestInStream(m_strCurVolume);
+	}
+		
+	virtual unsigned __int64 GetCurrentVolumeSize() {
+		wprintf(L"get current volume size:%ls\n", m_strCurVolume.c_str());
+		return m_nFileSize;
+	}
+};
+
+class TestOutStream : public C7ZipOutStream
+{
+private:
+	FILE * m_pFile;
+	std::string m_strFileName;
+	wstring m_strFileExt;
+	int m_nFileSize;
+public:
+	TestOutStream(std::string fileName) :
+	  m_strFileName(fileName),
+	  m_strFileExt(L"7z")
+	{
+		m_pFile = fopen(fileName.c_str(), "wb");
+		m_nFileSize = 0;
+
+		int pos = m_strFileName.find_last_of(".");
+
+		if (pos != m_strFileName.npos)
+		{
+#ifdef _WIN32
+			std::string tmp = m_strFileName.substr(pos + 1);
+			int nLen = MultiByteToWideChar(CP_ACP, 0, tmp.c_str(), -1, NULL, NULL);
+			LPWSTR lpszW = new WCHAR[nLen];
+			MultiByteToWideChar(CP_ACP, 0, 
+			   tmp.c_str(), -1, lpszW, nLen);
+			m_strFileExt = lpszW;
+			// free the string
+			delete[] lpszW;
+#else
+			m_strFileExt = L"7z";
+#endif
+		}
+		wprintf(L"Ext:%ls\n", m_strFileExt.c_str());
+	}
+
+	virtual ~TestOutStream()
+	{
+		fclose(m_pFile);
+	}
+
+public:
+	int GetFileSize() const 
+	{
+		return m_nFileSize;
+	}
+
+	virtual int Write(const void *data, unsigned int size, unsigned int *processedSize)
+	{
+		int count = fwrite(data, 1, size, m_pFile);
+		wprintf(L"Write:%d %d\n", size, count);
+
+		if (count >= 0)
+		{
+			if (processedSize != NULL)
+				*processedSize = count;
+
+			m_nFileSize += count;
+			return 0;
+		}
+
+		return 1;
+	}
+
+	virtual int Seek(__int64 offset, unsigned int seekOrigin, unsigned __int64 *newPosition)
+	{
+		int result = fseek(m_pFile, (long)offset, seekOrigin);
+
+		if (!result)
+		{
+			if (newPosition)
+				*newPosition = ftell(m_pFile);
+
+			return 0;
+		}
+
+		return result;
+	}
+
+	virtual int SetSize(unsigned __int64 size)
+	{
+		wprintf(L"SetFileSize:%ld\n", size);
 		return 0;
 	}
 };
@@ -140,8 +297,9 @@ int main(int argc, char * argv[])
 
 	C7ZipArchive * pArchive = NULL;
 
-	TestInStream stream("test.7z.001");
-	if (lib.OpenArchive(&stream, &pArchive))
+	TestMultiVolumes volumes(L"test.7z.001");
+	TestOutStream oStream("TestMultiResult.txt");
+	if (lib.OpenMultiVolumeArchive(&volumes, &pArchive))
 	{
 		unsigned int numItems = 0;
 
@@ -159,6 +317,13 @@ int main(int argc, char * argv[])
 					pArchiveItem->GetFullPath().c_str(),
 					pArchiveItem->IsDir());
 			}
+				//set archive password or item password
+				pArchive->SetArchivePassword(L"test");
+				if (i==0) {
+					//Or set password for each archive item
+					//pArchiveItem->SetArchiveItemPassword(L"test");
+					pArchive->Extract(pArchiveItem, &oStream);
+				}
 		}
 	}
 	else
