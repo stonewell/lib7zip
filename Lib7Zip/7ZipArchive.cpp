@@ -476,3 +476,12 @@ bool C7ZipArchiveImpl::GetFileTimeProperty(lib7zip::PropertyIndexEnum propertyIn
 	return false;
 }
 
+/*------------------- C7ZipArchive -----------*/
+C7ZipArchive::C7ZipArchive()
+{
+}
+
+C7ZipArchive::~C7ZipArchive()
+{
+}
+

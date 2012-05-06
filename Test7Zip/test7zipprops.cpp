@@ -35,7 +35,8 @@ public:
 
 	virtual ~TestInStream()
 	{
-		fclose(m_pFile);
+		if (m_pFile)
+			fclose(m_pFile);
 	}
 
 public:
@@ -144,7 +145,7 @@ int main(int argc, char * argv[])
 
 	C7ZipArchive * pArchive = NULL;
 
-	for (int i=0; i < sizeof(files) / sizeof(const wchar_t *); i++) {
+	for (int i=0; i < sizeof(files) / sizeof(const char *); i++) {
 		TestInStream stream(files[i], files_ext[i]);
 
 		if (lib.OpenArchive(&stream, &pArchive)) {
@@ -237,7 +238,7 @@ int main(int argc, char * argv[])
 			}
 		}
 		else {
-			wprintf(L"open archive %ls fail\n", files[i]);
+			wprintf(L"open archive %s fail\n", files[i]);
 		}
 	}
 

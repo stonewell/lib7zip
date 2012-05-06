@@ -47,5 +47,12 @@ HRESULT GetMethodPropertyGUID(GetMethodPropertyFunc getMethodProperty, UInt32 in
                              PROPID propId, GUID & val);
 
 UInt64 ConvertPropVariantToUInt64(const PROPVARIANT &);
+
+HRESULT GetFilePathExt(const wstring & path, wstring & ext);
+HRESULT GetArchiveItemPath(IInArchive *archive, UInt32 index, wstring &result);
+HRESULT GetArchiveItemPath(IInArchive *archive, UInt32 index, const wstring &defaultName, wstring &result);
+wstring WidenString( const string& str );
+string NarrowString( const wstring& str );
+
 #endif
 

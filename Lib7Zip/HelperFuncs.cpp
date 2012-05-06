@@ -12,7 +12,7 @@
 #define INITGUID
 #endif
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(_OS2)
 #include "CPP/myWindows/StdAfx.h"
 #include "CPP/Windows/Defs.h"
 #include "CPP/7zip/MyVersion.h"
@@ -25,12 +25,21 @@
 #include "CPP/7zip/IPassword.h"
 #include "CPP/7zip/Common/FileStreams.h"
 
+#include <locale>
+#include <iostream>
+#include <string>
+#include <sstream>
+
+#if defined(_OS2)
+bool VARIANT_BOOLToBool(VARIANT_BOOL v) { return (v != VARIANT_FALSE); }
+#endif //_OS2
+
 #include "HelperFuncs.h"
 
 HRESULT ReadProp(
-						GetHandlerPropertyFunc getProp,
-						GetHandlerPropertyFunc2 getProp2,
-						UInt32 index, PROPID propID, NWindows::NCOM::CPropVariant &prop)
+				 GetHandlerPropertyFunc getProp,
+				 GetHandlerPropertyFunc2 getProp2,
+				 UInt32 index, PROPID propID, NWindows::NCOM::CPropVariant &prop)
 {
 	if (getProp2)
 		return getProp2(index, propID, &prop);;
@@ -38,9 +47,9 @@ HRESULT ReadProp(
 }
 
 HRESULT ReadBoolProp(
-							GetHandlerPropertyFunc getProp,
-							GetHandlerPropertyFunc2 getProp2,
-							UInt32 index, PROPID propID, bool &res)
+					 GetHandlerPropertyFunc getProp,
+					 GetHandlerPropertyFunc2 getProp2,
+					 UInt32 index, PROPID propID, bool &res)
 {
 	NWindows::NCOM::CPropVariant prop;
 
@@ -53,9 +62,9 @@ HRESULT ReadBoolProp(
 }
 
 HRESULT ReadStringProp(
-							  GetHandlerPropertyFunc getProp,
-							  GetHandlerPropertyFunc2 getProp2,
-							  UInt32 index, PROPID propID, wstring &res)
+					   GetHandlerPropertyFunc getProp,
+					   GetHandlerPropertyFunc2 getProp2,
+					   UInt32 index, PROPID propID, wstring &res)
 {
 	NWindows::NCOM::CPropVariant prop;
 
@@ -74,13 +83,10 @@ void SplitString(const wstring &srcString, WStringArray &destStrings)
 	size_t len = srcString.length();
 	if (len == 0)
 		return;
-	for (size_t i = 0; i < len; i++)
-	{
+	for (size_t i = 0; i < len; i++) {
 		wchar_t c = srcString[i];
-		if (c == L' ')
-		{
-			if (!s.empty())
-			{
+		if (c == L' ') {
+			if (!s.empty())	{
 				destStrings.push_back(s);
 				s.clear();
 			}
@@ -93,13 +99,12 @@ void SplitString(const wstring &srcString, WStringArray &destStrings)
 }
 
 HRESULT GetCoderClass(GetMethodPropertyFunc getMethodProperty, UInt32 index,
-							 PROPID propId, GUID & clsId, bool &isAssigned)
+					  PROPID propId, GUID & clsId, bool &isAssigned)
 {
 	NWindows::NCOM::CPropVariant prop;
 	isAssigned = false;
 	RINOK(getMethodProperty(index, propId, &prop));
-	if (prop.vt == VT_BSTR)
-	{
+	if (prop.vt == VT_BSTR)	{
 		isAssigned = true;
 		clsId = *(const GUID *)prop.bstrVal;
 	}
@@ -109,28 +114,26 @@ HRESULT GetCoderClass(GetMethodPropertyFunc getMethodProperty, UInt32 index,
 }
 
 HRESULT GetMethodPropertyString(GetMethodPropertyFunc getMethodProperty, UInt32 index,
-                             PROPID propId, wstring & val)
+								PROPID propId, wstring & val)
 {
     NWindows::NCOM::CPropVariant prop;
     RINOK(getMethodProperty(index, propId, &prop));
-    if (prop.vt == VT_BSTR)
-    {
-        val = prop.bstrVal;
-    }
+    if (prop.vt == VT_BSTR)	{
+		val = prop.bstrVal;
+	}
     else if (prop.vt != VT_EMPTY)
         return E_FAIL;
     return S_OK;
 }
 
 HRESULT GetMethodPropertyGUID(GetMethodPropertyFunc getMethodProperty, UInt32 index,
-                             PROPID propId, GUID & val)
+							  PROPID propId, GUID & val)
 {
     NWindows::NCOM::CPropVariant prop;
     RINOK(getMethodProperty(index, propId, &prop));
-    if (prop.vt == VT_BSTR)
-    {
-        val = *(const GUID *)prop.bstrVal;
-    }
+    if (prop.vt == VT_BSTR)	{
+		val = *(const GUID *)prop.bstrVal;
+	}
     else if (prop.vt != VT_EMPTY)
         return E_FAIL;
     return S_OK;
@@ -147,12 +150,10 @@ inline wchar_t MyCharUpper(wchar_t c)
 
 int MyStringCompareNoCase(const wchar_t *s1, const wchar_t *s2)
 {
-	for (;;)
-	{
+	for (;;) {
 		wchar_t c1 = *s1++;
 		wchar_t c2 = *s2++;
-		if (c1 != c2)
-		{
+		if (c1 != c2) {
 			wchar_t u1 = MyCharUpper(c1);
 			wchar_t u2 = MyCharUpper(c2);
 			if (u1 < u2) return -1;
@@ -186,13 +187,11 @@ HRESULT GetArchiveItemPath(IInArchive *archive, UInt32 index, wstring &result)
 HRESULT GetArchiveItemPath(IInArchive *archive, UInt32 index, const wstring &defaultName, wstring &result)
 {
 	RINOK(GetArchiveItemPath(archive, index, result));
-	if (result.empty())
-	{
+	if (result.empty())	{
 		result = defaultName;
 		NWindows::NCOM::CPropVariant prop;
 		RINOK(archive->GetProperty(index, kpidExtension, &prop));
-		if (prop.vt == VT_BSTR)
-		{
+		if (prop.vt == VT_BSTR)	{
 			result += L'.';
 			result += prop.bstrVal;
 		}
@@ -236,7 +235,7 @@ HRESULT IsArchiveItemProp(IInArchive *archive, UInt32 index, PROPID propID, bool
 
 HRESULT IsArchiveItemFolder(IInArchive *archive, UInt32 index, bool &result)
 {
-#if MY_VER_MAJOR >= 9 || defined(_WIN32) || MY_VER_MAJOR == 4
+#if MY_VER_MAJOR >= 9 || defined(_WIN32) || defined(_OS2) || MY_VER_MAJOR == 4
 	return IsArchiveItemProp(archive, index, kpidIsDir, result);
 #else
 	return IsArchiveItemProp(archive, index, kpidIsFolder, result);
@@ -250,8 +249,7 @@ HRESULT IsArchiveItemAnti(IInArchive *archive, UInt32 index, bool &result)
 
 UInt64 ConvertPropVariantToUInt64(const PROPVARIANT &prop)
 {
-	switch (prop.vt)
-	{
+	switch (prop.vt) {
 	case VT_UI1: return prop.bVal;
 	case VT_UI2: return prop.uiVal;
 	case VT_UI4: return prop.ulVal;
@@ -263,4 +261,37 @@ UInt64 ConvertPropVariantToUInt64(const PROPVARIANT &prop)
 		return 0;
 #endif
 	}
+}
+
+HRESULT GetFilePathExt(const wstring & path, wstring & ext)
+{
+	int dotPos = path.rfind(L'.');
+	if (dotPos >= 0) {
+		ext = path.substr(dotPos + 1);
+		return S_OK;
+	}
+
+	return E_FAIL;
+}
+
+wstring WidenString( const string& str )
+{
+	std::wostringstream wstm ;
+	wstm.imbue(std::locale("en_US.utf8"));
+	const std::ctype<wchar_t>& ctfacet =
+		 std::use_facet< std::ctype<wchar_t> >( wstm.getloc() ) ;
+	for( size_t i=0 ; i<str.size() ; ++i )
+		wstm << ctfacet.widen( str[i] ) ;
+	return wstm.str() ;
+}
+       
+string NarrowString( const wstring& str )
+{
+	std::ostringstream stm ;
+	stm.imbue(std::locale("C"));
+	const std::ctype<char>& ctfacet =
+					 std::use_facet< std::ctype<char> >( stm.getloc() ) ;
+	for( size_t i=0 ; i<str.size() ; ++i )
+		stm << ctfacet.narrow( str[i], 0 ) ;
+	return stm.str() ;
 }

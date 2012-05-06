@@ -291,3 +291,13 @@ bool Create7ZipArchiveItem(C7ZipArchive * pArchive,
 
 	return true;
 }
+
+/*-------------------- C7ZipArchiveItem ----------------------*/
+C7ZipArchiveItem::C7ZipArchiveItem()
+{
+}
+
+C7ZipArchiveItem::~C7ZipArchiveItem()
+{
+}
+

@@ -64,7 +64,12 @@ ARFLAGS = cru
 lib7zip_a_AR = $(AR) $(ARFLAGS)
 lib7zip_a_LIBADD =
 am_lib7zip_a_OBJECTS = 7ZipArchive.$(OBJEXT) 7ZipArchiveItem.$(OBJEXT) \
-	7zipLibrary.$(OBJEXT) HelperFuncs.$(OBJEXT)
+	7zipLibrary.$(OBJEXT) HelperFuncs.$(OBJEXT) \
+	7ZipArchiveOpenCallback.$(OBJEXT) 7ZipCodecInfo.$(OBJEXT) \
+	7ZipCompressCodecsInfo.$(OBJEXT) 7ZipDllHandler.$(OBJEXT) \
+	7ZipFormatInfo.$(OBJEXT) 7ZipObjectPtrArray.$(OBJEXT) \
+	7ZipOpenArchive.$(OBJEXT) OSFunctions_UnixLike.$(OBJEXT) \
+	OSFunctions_Win32.$(OBJEXT) 7ZipInStreamWrapper.$(OBJEXT)
 nodist_lib7zip_a_OBJECTS = MyWindows.$(OBJEXT) PropVariant.$(OBJEXT)
 lib7zip_a_OBJECTS = $(am_lib7zip_a_OBJECTS) \
 	$(nodist_lib7zip_a_OBJECTS)
@@ -187,7 +192,28 @@ top_srcdir = @top_srcdir@
 noinst_LIBRARIES = lib7zip.a
 AM_CPPFLAGS = -I../includes -I../includes/CPP -I../includes/CPP/myWindows -I../includes/CPP/include_windows
 lib7zip_a_SOURCES = \
-	7ZipArchive.cpp  7ZipArchiveItem.cpp  7zipLibrary.cpp  HelperFuncs.cpp  HelperFuncs.h  lib7zip.h 
+	7ZipArchive.cpp  7ZipArchiveItem.cpp  7zipLibrary.cpp  HelperFuncs.cpp  HelperFuncs.h  lib7zip.h \
+	7ZipArchiveOpenCallback.cpp \
+	7ZipArchiveOpenCallback.h \
+	7ZipCodecInfo.cpp \
+	7ZipCodecInfo.h \
+	7ZipCompressCodecsInfo.cpp \
+	7ZipCompressCodecsInfo.h \
+	7ZipDllHandler.cpp \
+	7ZipDllHandler.h \
+	7ZipFormatInfo.cpp \
+	7ZipFormatInfo.h \
+	7ZipFunctions.h \
+	7ZipObjectPtrArray.cpp \
+	7ZipOpenArchive.cpp \
+	OSFunctions.h \
+	OSFunctions_OS2.h \
+	OSFunctions_UnixLike.cpp \
+	OSFunctions_UnixLike.h \
+	OSFunctions_Win32.cpp \
+	OSFunctions_Win32.h \
+	7ZipInStreamWrapper.cpp \
+	7ZipInStreamWrapper.h
 
 nodist_lib7zip_a_SOURCES = ../includes/CPP/Common/MyWindows.cpp ../includes/CPP/Common/StdAfx.h \
 	../includes/CPP/Windows/PropVariant.cpp ../inclues/CPP/Windows/StdAfx.h
@@ -244,9 +270,19 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/7ZipArchive.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/7ZipArchiveItem.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/7ZipArchiveOpenCallback.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/7ZipCodecInfo.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/7ZipCompressCodecsInfo.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/7ZipDllHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/7ZipFormatInfo.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/7ZipInStreamWrapper.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/7ZipObjectPtrArray.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/7ZipOpenArchive.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/7zipLibrary.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HelperFuncs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MyWindows.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/OSFunctions_UnixLike.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/OSFunctions_Win32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PropVariant.Po@am__quote@
 
 .cpp.o:
