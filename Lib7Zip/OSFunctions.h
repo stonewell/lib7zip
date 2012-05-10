@@ -10,5 +10,7 @@
 #endif
 
 wstring GetHandlerPath(void * pHandle);
+HMODULE Load7ZLibrary(const wstring & library);
+void Free7ZLibrary(HMODULE pModule);
 
 #endif //__OS_FUNCTIONS_H__

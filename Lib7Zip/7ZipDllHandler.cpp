@@ -80,11 +80,7 @@ void C7ZipDllHandler::Initialize()
 
 void C7ZipDllHandler::Deinitialize()
 {
-#ifdef _WIN32
-    ::FreeLibrary((HMODULE)m_pHandler);
-#else
-    dlclose(m_pHandler);
-#endif
+    Free7ZLibrary((HMODULE)m_pHandler);
 
     m_CodecInfoArray.clear();
     m_FormatInfoArray.clear();

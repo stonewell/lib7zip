@@ -144,4 +144,17 @@ wstring GetHandlerPath(void * pHandler)
 
     return L".";
 }
+
+HMODULE Load7ZLibrary(const wstring & name)
+{
+	string tmpName = NarrowString(name + L".so");
+
+    return dlopen(tmpName.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+}
+
+void Free7ZLibrary(HMODULE pModule)
+{
+    dlclose(pModule);
+}
+
 #endif
