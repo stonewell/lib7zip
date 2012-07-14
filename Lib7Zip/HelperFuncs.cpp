@@ -30,6 +30,8 @@
 #include <string>
 #include <sstream>
 
+#include "OSFunctions.h"
+
 #if defined(_OS2)
 bool VARIANT_BOOLToBool(VARIANT_BOOL v) { return (v != VARIANT_FALSE); }
 #endif //_OS2

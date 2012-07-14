@@ -32,6 +32,7 @@ using namespace NWindows;
 #include "HelperFuncs.h"
 #include "7ZipFunctions.h"
 #include "7ZipDllHandler.h"
+#include "OSFunctions.h"
 
 /*-------------- const defines ---------------------------*/
 const wchar_t kAnyStringWildcard = '*';
@@ -66,11 +67,7 @@ bool C7ZipLibrary::Initialize()
     if (m_bInitialized)
         return true;
 
-#ifdef _WIN32
-    void * pHandler = LoadLibrary(L"7z.dll");
-#else
-    void * pHandler = dlopen("7z.so", RTLD_LAZY | RTLD_GLOBAL);
-#endif
+    void * pHandler = Load7ZLibrary(L"7z");
 
     if (pHandler == NULL)
         return false;

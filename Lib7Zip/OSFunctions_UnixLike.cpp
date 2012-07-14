@@ -1,4 +1,4 @@
-#if !defined(_WIN32) && !defined(_OS2)
+#if !defined(_WIN32) && !defined(OS2)
 #include "lib7zip.h"
 
 #ifdef S_OK
@@ -144,4 +144,17 @@ wstring GetHandlerPath(void * pHandler)
 
     return L".";
 }
+
+HMODULE Load7ZLibrary(const wstring & name)
+{
+	string tmpName = NarrowString(name + L".so");
+
+    return dlopen(tmpName.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+}
+
+void Free7ZLibrary(HMODULE pModule)
+{
+    dlclose(pModule);
+}
+
 #endif

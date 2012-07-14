@@ -90,4 +90,14 @@ wstring GetHandlerPath(void * pHandler)
 
     return L".";
 }
+
+HMODULE Load7ZLibrary(const wstring & library)
+{
+	return LoadLibrary(library.c_str());
+}
+
+void Free7ZLibrary(HMODULE pModule)
+{
+    ::FreeLibrary(pModule);
+}
 #endif //_WIN_32
