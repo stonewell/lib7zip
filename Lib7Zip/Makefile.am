@@ -1,7 +1,13 @@
 noinst_LIBRARIES = lib7zip.a
 
-AM_CPPFLAGS = -I../includes -I../includes/CPP -I../includes/CPP/myWindows -I../includes/CPP/include_windows
+if WIN32
+A_EXTRA_FLAGS = -DUNICODE -D_UNICODE
+else
+A_EXTRA_FLAGS = 
+endif
 
+AM_CPPFLAGS = -I../includes -I../includes/CPP -I../includes/CPP/myWindows -I../includes/CPP/include_windows \
+	$(A_EXTRA_FLAGS)
 
 lib7zip_a_SOURCES = \
 	7ZipArchive.cpp  7ZipArchiveItem.cpp  7zipLibrary.cpp  HelperFuncs.cpp  HelperFuncs.h  lib7zip.h \

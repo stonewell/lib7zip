@@ -9,13 +9,18 @@ test7zipmulti_SOURCES = \
 test7zprops_SOURCES = \
 	stdafx.cpp stdafx.h test7zipprops.cpp
 
-test7zip_LDADD = ../Lib7Zip/lib7zip.a \
-	-ldl
+if WIN32
+A_LIBS = -loleaut32 -luuid
+else
+A_LIBS = -ldl
+endif
+
+test7zip_LDADD = ../Lib7Zip/lib7zip.a $(A_LIBS)
 
 test7zipmulti_LDADD = ../Lib7Zip/lib7zip.a \
-	-ldl
+	$(A_LIBS)
 
 test7zprops_LDADD = ../Lib7Zip/lib7zip.a \
-	-ldl
+	$(A_LIBS)
 
 EXTRA_DIST = Test7Zip.vcproj

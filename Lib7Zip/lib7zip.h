@@ -3,10 +3,10 @@
 
 #define LIB_7ZIP_VER_MAJOR 1
 #define LIB_7ZIP_VER_MINOR 6
-#define LIB_7ZIP_VER_BUILD 1
-#define LIB_7ZIP_VERSION "1.61"
-#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 1.61"
-#define LIB_7ZIP_DATE "2012-05"
+#define LIB_7ZIP_VER_BUILD 2
+#define LIB_7ZIP_VERSION "1.62"
+#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 1.62"
+#define LIB_7ZIP_DATE "2012-07"
 #define LIB_7ZIP_COPYRIGHT "Copyright (c) 2009-2012"
 #define LIB_7ZIP_VERSION_COPYRIGHT_DATE MY_VERSION "  " MY_COPYRIGHT "  " MY_DATE
 
@@ -26,6 +26,7 @@ typedef std::basic_string<char> string;
 #define S_OK 				 0
 #else
 typedef std::basic_string<wchar_t> wstring;
+typedef std::basic_string<char> string;
 #endif
 
 typedef std::vector<wstring> WStringArray;

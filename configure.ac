@@ -1,6 +1,8 @@
-AC_INIT([lib7zip], [1.6.1], [jingnan.si@gmail.com])
+AC_INIT([lib7zip], [1.6.2], [jingnan.si@gmail.com])
 AC_CONFIG_SRCDIR(Lib7Zip/lib7zip.h)
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+
+AC_CANONICAL_HOST
 
 AC_PROG_CC
 AC_PROG_CXX
@@ -21,6 +23,17 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS([fcntl.h stddef.h string.h unistd.h dlfcn.h dirent.h])
 AC_CHECK_FUNCS([memset memmove])
 AC_CHECK_FUNCS([sqrt])
+
+dnl check if win32 system
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+				[[#ifndef _WIN32
+				      error: This isn't WIN32!
+		     #endif
+     		]])],
+                        [is_win32=yes],
+                        [is_win32=no])
+
+AM_CONDITIONAL(WIN32, test x$is_win32 = xyes)
 
 dnl check for p7zip source
 AC_ARG_VAR([P7ZIP_SOURCE_DIR], [p7zip source directory, must be set before compile source])
