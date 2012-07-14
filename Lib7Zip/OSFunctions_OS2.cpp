@@ -1,13 +1,9 @@
-#ifdef _OS2
-#include "unistd.h"
-#include "dirent.h"
+#ifdef OS2
 #include <iostream>
-#define INCL_DOSMODULEMGR
-#define INCL_DOSERRORS
-#include <os2.h>
 #include "HelperFuncs.h"
 
-HMODULE *hmod2;
+static HMODULE *hmod2;
+
 void *GetProcAddress (HMODULE hmod, const char *symbol) {
     void *addr = NULL;
     PFN      ModuleAddr     = 0;
@@ -134,7 +130,7 @@ wstring GetHandlerPath(void * pHandler)
 
 	/*
 	  return values
-	  0 NO_ERROR 
+	  0 NO_ERROR
 	  6 ERROR_INVALID_HANDLE
 	  24 ERROR_BAD_LENGTH
 	*/

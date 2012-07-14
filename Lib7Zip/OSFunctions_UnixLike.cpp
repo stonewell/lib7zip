@@ -1,4 +1,4 @@
-#if !defined(_WIN32) && !defined(_OS2)
+#if !defined(_WIN32) && !defined(OS2)
 #include "lib7zip.h"
 
 #ifdef S_OK
