@@ -19,3 +19,6 @@ includes/C$
 includes/CPP$
 .*\.o
 .*\.a
+.*\.lo
+.*\.la
+.*\.so\.?.*
