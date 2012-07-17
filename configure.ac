@@ -1,6 +1,7 @@
 AC_INIT([lib7zip], [1.6.2], [jingnan.si@gmail.com])
 AC_CONFIG_SRCDIR(Lib7Zip/lib7zip.h)
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_CANONICAL_HOST
 
@@ -11,8 +12,7 @@ AC_C_INLINE
 AC_HEADER_STDBOOL
 
 AC_PROG_RANLIB
-AC_PROG_LIBTOOL
-LT_INIT
+LT_INIT([dlopen win32-dll])
 
 AC_LANG(C++)
 

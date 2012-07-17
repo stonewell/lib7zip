@@ -2,8 +2,10 @@ noinst_LIBRARIES = lib7zip.a
 
 if WIN32
 A_EXTRA_FLAGS = -DUNICODE -D_UNICODE
+A_LIBS = -loleaut32 -luuid
 else
 A_EXTRA_FLAGS = 
+A_LIBS = -no-undefined
 endif
 
 AM_CPPFLAGS = -I../includes -I../includes/CPP -I../includes/CPP/myWindows -I../includes/CPP/include_windows \
@@ -43,6 +45,18 @@ nodist_lib7zip_a_SOURCES= $(NODIST_SOURCES)
 lib7zip_a_CFLAGS = $(AM_CFLAGS)
 lib7zip_a_CPPFLAGS = $(AM_CPPFLAGS)
 
+if WIN32
+lib7zip.dll:
+	$(CXXLD) -shared $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(lib7zip_a_LDFLAGS) $(LDFLAGS) -o $@ $(lib7zip_a_OBJECTS) $(A_LIBS)
+
+all-local:lib7zip.dll
+	-cp lib7zip.dll ../lib
+
+clean-local:
+	-rm -f lib7zip.dll
+
+else
 lib_LTLIBRARIES = lib7zip.la
 lib7zip_la_SOURCES = $(SOURCES)
 
@@ -55,8 +69,8 @@ nodist_lib7zip_la_SOURCES= $(NODIST_SOURCES)
 # -export-symbols lib7zip.sym \
 #LIB7ZIP_VERSION_INFO=1.6.0
 # -version-info @LIB7ZIP_VERSION_INFO@
-lib7zip_la_LDFLAGS =  -no-undefined
-
+lib7zip_la_LDFLAGS = -loleaut32 -no-undefined
+endif
 
 EXTRA_DIST = Lib7Zip.vcproj 
 
