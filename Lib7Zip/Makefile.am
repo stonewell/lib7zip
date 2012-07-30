@@ -69,7 +69,7 @@ nodist_lib7zip_la_SOURCES= $(NODIST_SOURCES)
 # -export-symbols lib7zip.sym \
 #LIB7ZIP_VERSION_INFO=1.6.0
 # -version-info @LIB7ZIP_VERSION_INFO@
-lib7zip_la_LDFLAGS = -loleaut32 -no-undefined
+lib7zip_la_LDFLAGS = $(A_LIBS)
 endif
 
 EXTRA_DIST = Lib7Zip.vcproj 
