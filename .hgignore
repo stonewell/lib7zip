@@ -22,3 +22,5 @@ includes/CPP$
 .*\.lo
 .*\.la
 .*\.so\.?.*
+m4/.*
+libtool
