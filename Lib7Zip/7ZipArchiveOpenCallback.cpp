@@ -32,10 +32,7 @@ STDMETHODIMP C7ZipArchiveOpenCallback::SetCompleted(const UInt64 * /* files */, 
 STDMETHODIMP C7ZipArchiveOpenCallback::CryptoGetTextPassword(BSTR *password)
 {
     if (!PasswordIsDefined) {
-        // You can ask real password here from user
-        // Password = GetPassword(OutStream);
-        // PasswordIsDefined = true;
-        return E_ABORT;
+        return E_NEEDPASSWORD;
     }
 
 #ifdef _WIN32

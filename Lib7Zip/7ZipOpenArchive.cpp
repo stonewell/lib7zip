@@ -46,26 +46,36 @@ static int CreateInArchive(pU7ZipFunctions pFunctions,
 	return CLASS_E_CLASSNOTAVAILABLE;
 }
 
-static bool InternalOpenArchive(C7ZipLibrary * pLibrary,
-								C7ZipDllHandler * pHandler,
-								C7ZipInStream * pInStream,
-								C7ZipArchiveOpenCallback * pOpenCallBack,
-								C7ZipArchive ** ppArchive);
+static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
+								   C7ZipDllHandler * pHandler,
+								   C7ZipInStream * pInStream,
+								   C7ZipArchiveOpenCallback * pOpenCallBack,
+								   C7ZipArchive ** ppArchive, 
+								   HRESULT * pResult);
 
-bool Lib7ZipOpenArchive(C7ZipLibrary * pLibrary,
-					 C7ZipDllHandler * pHandler,
-					 C7ZipInStream * pInStream,
-					 C7ZipArchive ** ppArchive)
+HRESULT Lib7ZipOpenArchive(C7ZipLibrary * pLibrary,
+						   C7ZipDllHandler * pHandler,
+						   C7ZipInStream * pInStream,
+						   C7ZipArchive ** ppArchive,
+						   const wstring & passwd,
+						   HRESULT * pResult)
 {
 	C7ZipArchiveOpenCallback * pOpenCallBack = new C7ZipArchiveOpenCallback(NULL);
-
-	return InternalOpenArchive(pLibrary, pHandler, pInStream, pOpenCallBack, ppArchive);
+	
+	if (passwd.length() > 0) {
+		pOpenCallBack->PasswordIsDefined = true;
+		pOpenCallBack->Password = passwd;
+	}
+	
+	return InternalOpenArchive(pLibrary, pHandler, pInStream, pOpenCallBack, ppArchive, pResult);
 }
 
-bool Lib7ZipOpenMultiVolumeArchive(C7ZipLibrary * pLibrary,
-								C7ZipDllHandler * pHandler,
-								C7ZipMultiVolumes * pMultiVolumes,
-								C7ZipArchive ** ppArchive)
+HRESULT Lib7ZipOpenMultiVolumeArchive(C7ZipLibrary * pLibrary,
+								   C7ZipDllHandler * pHandler,
+								   C7ZipMultiVolumes * pMultiVolumes,
+								   C7ZipArchive ** ppArchive,
+								   const wstring & passwd,
+								   HRESULT * pResult)
 {
 	wstring firstVolumeName = pMultiVolumes->GetFirstVolumeName();
 
@@ -79,14 +89,20 @@ bool Lib7ZipOpenMultiVolumeArchive(C7ZipLibrary * pLibrary,
 	
 	C7ZipArchiveOpenCallback * pOpenCallBack = new C7ZipArchiveOpenCallback(pMultiVolumes);
 
-	return InternalOpenArchive(pLibrary, pHandler, pInStream, pOpenCallBack, ppArchive);
+	if (passwd.length() > 0) {
+		pOpenCallBack->PasswordIsDefined = true;
+		pOpenCallBack->Password = passwd;
+	}
+
+	return InternalOpenArchive(pLibrary, pHandler, pInStream, pOpenCallBack, ppArchive, pResult);
 }
 
-static bool InternalOpenArchive(C7ZipLibrary * pLibrary,
-								C7ZipDllHandler * pHandler,
-								C7ZipInStream * pInStream,
-								C7ZipArchiveOpenCallback * pOpenCallBack,
-								C7ZipArchive ** ppArchive)
+static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
+								   C7ZipDllHandler * pHandler,
+								   C7ZipInStream * pInStream,
+								   C7ZipArchiveOpenCallback * pOpenCallBack,
+								   C7ZipArchive ** ppArchive, 
+								   HRESULT * pResult)
 {
 	CMyComPtr<IInArchive> archive = NULL;
 	CMyComPtr<ISetCompressCodecsInfo> setCompressCodecsInfo = NULL;
@@ -100,10 +116,10 @@ static bool InternalOpenArchive(C7ZipLibrary * pLibrary,
 	CMyComPtr<IArchiveOpenCallback> openCallBack(pOpenCallBack);
 
 	do {
-		RBOOLOK(CreateInArchive(pHandler->GetFunctions(),
-								pHandler->GetFormatInfoArray(),
-								extension,
-								archive));
+		FAIL_RET(CreateInArchive(pHandler->GetFunctions(),
+								 pHandler->GetFormatInfoArray(),
+								 extension,
+								 archive), pResult);
 
 		if (archive == NULL)
 			return false;
@@ -116,19 +132,20 @@ static bool InternalOpenArchive(C7ZipLibrary * pLibrary,
 			RBOOLOK(setCompressCodecsInfo->SetCompressCodecsInfo(pCompressCodecsInfo));
 		}
 
-		RBOOLOK(archive->Open(inStream, &kMaxCheckStartPosition, openCallBack));
+		FAIL_RET(archive->Open(inStream, &kMaxCheckStartPosition, openCallBack), pResult);
 
 		UInt32 mainSubfile;
 		{
 			NCOM::CPropVariant prop;
-			RINOK(archive->GetArchiveProperty(kpidMainSubfile, &prop));
+			FAIL_RET(archive->GetArchiveProperty(kpidMainSubfile, &prop), pResult);
 			if (prop.vt == VT_UI4)
 				mainSubfile = prop.ulVal;
 			else {
 				break;
 			}
+
 			UInt32 numItems;
-			RINOK(archive->GetNumberOfItems(&numItems));
+			FAIL_RET(archive->GetNumberOfItems(&numItems), pResult);
 			if (mainSubfile >= numItems)
 				break;
 		}
@@ -139,14 +156,14 @@ static bool InternalOpenArchive(C7ZipLibrary * pLibrary,
 		CMyComPtr<ISequentialInStream> subSeqStream;
 		if (getStream->GetStream(mainSubfile, &subSeqStream) != S_OK || !subSeqStream)
 			break;
-    
+    	
 		inStream = NULL;
 		if (subSeqStream.QueryInterface(IID_IInStream, &inStream) != S_OK || !inStream)
 			break;
     
 		wstring path;
 
-		RBOOLOK(GetArchiveItemPath(archive, mainSubfile, path));
+		FAIL_RET(GetArchiveItemPath(archive, mainSubfile, path), pResult);
 
 		CMyComPtr<IArchiveOpenSetSubArchiveName> setSubArchiveName;
 
@@ -155,11 +172,11 @@ static bool InternalOpenArchive(C7ZipLibrary * pLibrary,
 			setSubArchiveName->SetSubArchiveName(path.c_str());
 		}
 
-		RBOOLOK(GetFilePathExt(path, extension));
+		FAIL_RET(GetFilePathExt(path, extension), pResult);
 	} while(true);
 
 	if (archive == NULL)
-		return false;
+		return S_FALSE;
 
-	return Create7ZipArchive(pLibrary, archive, ppArchive);
+	return Create7ZipArchive(pLibrary, archive, ppArchive) ? S_OK : S_FALSE;
 }

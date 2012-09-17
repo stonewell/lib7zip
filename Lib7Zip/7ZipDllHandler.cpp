@@ -29,14 +29,18 @@ using namespace NWindows;
 
 extern bool LoadCodecs(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & codecInfos);
 extern bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats);
-extern bool Lib7ZipOpenArchive(C7ZipLibrary * pLibrary,
-							C7ZipDllHandler * pHandler,
-							C7ZipInStream * pInStream,
-							C7ZipArchive ** ppArchive);
-extern bool Lib7ZipOpenMultiVolumeArchive(C7ZipLibrary * pLibrary,
-									   C7ZipDllHandler * pHandler,
-									   C7ZipMultiVolumes * pMultiVolumes,
-									   C7ZipArchive ** ppArchive);
+extern HRESULT Lib7ZipOpenArchive(C7ZipLibrary * pLibrary,
+								  C7ZipDllHandler * pHandler,
+								  C7ZipInStream * pInStream,
+								  C7ZipArchive ** ppArchive,
+								  const wstring & passwd,
+								  HRESULT * pResult);
+extern HRESULT Lib7ZipOpenMultiVolumeArchive(C7ZipLibrary * pLibrary,
+										  C7ZipDllHandler * pHandler,
+										  C7ZipMultiVolumes * pMultiVolumes,
+										  C7ZipArchive ** ppArchive, 
+										  const wstring & passwd,	
+										  HRESULT * pResult);
 
 /*------------------------------ C7ZipDllHandler ------------------------*/
 C7ZipDllHandler::C7ZipDllHandler(C7ZipLibrary * pLibrary, void * pHandler) :
@@ -104,14 +108,18 @@ bool C7ZipDllHandler::GetSupportedExts(WStringArray & exts)
     return true;
 }
 
-bool C7ZipDllHandler::OpenArchive(C7ZipInStream * pInStream, C7ZipMultiVolumes * pMultiVolumes, C7ZipArchive ** ppArchive)
+bool C7ZipDllHandler::OpenArchive(C7ZipInStream * pInStream, C7ZipMultiVolumes * pMultiVolumes, 
+								  C7ZipArchive ** ppArchive, const wstring & passwd,
+								  HRESULT * pResult)
 {
 	if (pMultiVolumes != NULL)
-		return Lib7ZipOpenMultiVolumeArchive(m_pLibrary, this, pMultiVolumes, ppArchive);
+		return Lib7ZipOpenMultiVolumeArchive(m_pLibrary, this, pMultiVolumes, ppArchive, 
+											 passwd, pResult) == S_OK;
 	else if (pInStream != NULL)
-		return Lib7ZipOpenArchive(m_pLibrary, this, pInStream, ppArchive);
-
-	return false;
+		return Lib7ZipOpenArchive(m_pLibrary, this, pInStream, ppArchive, 
+								  passwd, pResult) == S_OK;
+	
+	return S_FALSE;
 }
 
 wstring C7ZipDllHandler::GetHandlerPath() const

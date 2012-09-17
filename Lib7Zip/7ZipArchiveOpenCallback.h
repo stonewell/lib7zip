@@ -1,6 +1,8 @@
 #ifndef __7ZIP_ARCHIVE_OPEN_CALLBACK_H__
 #define  __7ZIP_ARCHIVE_OPEN_CALLBACK_H__
 
+#define E_NEEDPASSWORD ((HRESULT)0x80040001L)
+
 class C7ZipArchiveOpenCallback:
 public IArchiveOpenCallback,
     public ICryptoGetTextPassword,
