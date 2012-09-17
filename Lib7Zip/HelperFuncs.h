@@ -5,6 +5,10 @@
 #define RBOOLOK(x) { int __result__ = (x); if (__result__ != 0) return false; }
 #endif
 
+#ifndef FAIL_RET
+#define FAIL_RET(x, pResult) { HRESULT __result__ = (x); if (pResult) *pResult = __result__; if (__result__ != S_OK) return __result__; }
+#endif
+
 #ifndef _WIN32
 #define WINAPI
 #endif

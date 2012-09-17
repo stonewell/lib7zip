@@ -33,12 +33,14 @@ using namespace NWindows;
 #include "7ZipFunctions.h"
 #include "7ZipDllHandler.h"
 #include "OSFunctions.h"
+#include "7ZipArchiveOpenCallback.h"
 
 /*-------------- const defines ---------------------------*/
 const wchar_t kAnyStringWildcard = '*';
 
 /*-------------- static functions ------------------------*/
 extern bool LoadDllFromFolder(C7ZipDllHandler * pMainHandler, const wstring & folder_name, C7ZipObjectPtrArray & handlers);
+static lib7zip::ErrorCodeEnum HResultToErrorCode(HRESULT hr);
 
 /*------------------------ C7ZipLibrary ---------------------*/
 
@@ -113,62 +115,96 @@ bool C7ZipLibrary::GetSupportedExts(WStringArray & exts)
     return true;
 }
 
+bool C7ZipLibrary::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive, 
+							   const wstring & passwd)
+{
+    if (!m_bInitialized) {
+		m_LastError = lib7zip::NOT_INITIALIZE;
+        return false;
+	}
+
+    for(C7ZipObjectPtrArray::iterator it = m_InternalObjectsArray.begin(); 
+        it != m_InternalObjectsArray.end(); it++)
+    {
+        C7ZipDllHandler * pHandler = dynamic_cast<C7ZipDllHandler *>(*it);
+		HRESULT hr = S_OK;
+
+        if (pHandler != NULL && pHandler->OpenArchive(pInStream, NULL, ppArchive, passwd, &hr))
+        {
+			if (*ppArchive)
+				(*ppArchive)->SetArchivePassword(passwd);
+			m_LastError = HResultToErrorCode(hr);
+            return true;
+        }
+
+		m_LastError = HResultToErrorCode(hr);
+
+		if (m_LastError == lib7zip::NEED_PASSWORD)
+			return false;
+    }
+
+	m_LastError = lib7zip::NOT_SUPPORTED_ARCHIVE;
+    return false;
+}
+
 bool C7ZipLibrary::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive)
 {
-    if (!m_bInitialized)
+	return OpenArchive(pInStream, ppArchive, L"");
+}
+
+bool C7ZipLibrary::OpenMultiVolumeArchive(C7ZipMultiVolumes * pMultiVolumes, C7ZipArchive ** ppArchive,
+										  const wstring & passwd)
+{
+    if (!m_bInitialized) {
+		m_LastError = lib7zip::NOT_INITIALIZE;
         return false;
+	}
 
     for(C7ZipObjectPtrArray::iterator it = m_InternalObjectsArray.begin(); 
         it != m_InternalObjectsArray.end(); it++)
     {
         C7ZipDllHandler * pHandler = dynamic_cast<C7ZipDllHandler *>(*it);
+		HRESULT hr = S_OK;
 
-        if (pHandler != NULL && pHandler->OpenArchive(pInStream, NULL, ppArchive))
+        if (pHandler != NULL && pHandler->OpenArchive(NULL, pMultiVolumes, ppArchive, passwd, &hr))
         {
+			if (*ppArchive)
+				(*ppArchive)->SetArchivePassword(passwd);
+			m_LastError = HResultToErrorCode(hr);
             return true;
         }
+
+		m_LastError = HResultToErrorCode(hr);
+
+		if (m_LastError == lib7zip::NEED_PASSWORD)
+			return false;
     }
 
+	m_LastError = lib7zip::NOT_SUPPORTED_ARCHIVE;
     return false;
 }
 
-bool C7ZipLibrary::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive, const wstring & pwd)
+bool C7ZipLibrary::OpenMultiVolumeArchive(C7ZipMultiVolumes * pInStream, C7ZipArchive ** ppArchive)
 {
-	if (OpenArchive(pInStream, ppArchive)) {
-		(*ppArchive)->SetArchivePassword(pwd);
-		return true;
+	return OpenMultiVolumeArchive(pInStream, ppArchive, L"");
+}
+
+static lib7zip::ErrorCodeEnum HResultToErrorCode(HRESULT hr)
+{
+	switch(hr){
+	case S_OK:
+		return lib7zip::NO_ERROR;
+	case E_NEEDPASSWORD:
+		return lib7zip::NEED_PASSWORD;
+	case S_FALSE:
+	case E_NOTIMPL:
+	case E_NOINTERFACE:
+	case E_ABORT:
+	case E_FAIL:
+	case STG_E_INVALIDFUNCTION:
+	case E_OUTOFMEMORY:
+	case E_INVALIDARG:
+	default:
+		return lib7zip::UNKNOWN_ERROR;
 	}
-
-	return false;
 }
-
-bool C7ZipLibrary::OpenMultiVolumeArchive(C7ZipMultiVolumes * pMultiVolumes, C7ZipArchive ** ppArchive)
-{
-    if (!m_bInitialized)
-        return false;
-
-    for(C7ZipObjectPtrArray::iterator it = m_InternalObjectsArray.begin(); 
-        it != m_InternalObjectsArray.end(); it++)
-    {
-        C7ZipDllHandler * pHandler = dynamic_cast<C7ZipDllHandler *>(*it);
-
-        if (pHandler != NULL && pHandler->OpenArchive(NULL, pMultiVolumes, ppArchive))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool C7ZipLibrary::OpenMultiVolumeArchive(C7ZipMultiVolumes * pInStream, C7ZipArchive ** ppArchive, 
-										  const wstring & pwd)
-{
-	if (OpenMultiVolumeArchive(pInStream, ppArchive)) {
-		(*ppArchive)->SetArchivePassword(pwd);
-		return true;
-	}
-
-	return false;
-}
-

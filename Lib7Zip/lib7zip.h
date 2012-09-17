@@ -3,10 +3,10 @@
 
 #define LIB_7ZIP_VER_MAJOR 1
 #define LIB_7ZIP_VER_MINOR 6
-#define LIB_7ZIP_VER_BUILD 2
-#define LIB_7ZIP_VERSION "1.62"
-#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 1.62"
-#define LIB_7ZIP_DATE "2012-07"
+#define LIB_7ZIP_VER_BUILD 3
+#define LIB_7ZIP_VERSION "1.63"
+#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 1.63"
+#define LIB_7ZIP_DATE "2012-09"
 #define LIB_7ZIP_COPYRIGHT "Copyright (c) 2009-2012"
 #define LIB_7ZIP_VERSION_COPYRIGHT_DATE MY_VERSION "  " MY_COPYRIGHT "  " MY_DATE
 
@@ -79,6 +79,18 @@ namespace lib7zip {
 		kpidSize, //(Uncompressed Size)
 
 		PROP_INDEX_END
+	};
+
+	enum ErrorCodeEnum {
+		ErrorCode_Begin,
+
+		NO_ERROR = ErrorCode_Begin,
+		UNKNOWN_ERROR,
+		NOT_INITIALIZE,
+		NEED_PASSWORD,
+		NOT_SUPPORTED_ARCHIVE,
+
+		ErrorCode_End
 	};
 };
 
@@ -171,6 +183,7 @@ public:
 
 private:
 	bool m_bInitialized;
+	lib7zip::ErrorCodeEnum m_LastError;
 
 	C7ZipObjectPtrArray m_InternalObjectsArray;
 
@@ -184,6 +197,8 @@ public:
 	bool OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive, const wstring & pwd);
 	bool OpenMultiVolumeArchive(C7ZipMultiVolumes * pVolumes, C7ZipArchive ** ppArchive);
 	bool OpenMultiVolumeArchive(C7ZipMultiVolumes * pVolumes, C7ZipArchive ** ppArchive, const wstring & pwd);
+
+	lib7zip::ErrorCodeEnum GetLastError() const { return m_LastError; }
 
     const C7ZipObjectPtrArray & GetInternalObjectsArray() { return m_InternalObjectsArray; }
 
