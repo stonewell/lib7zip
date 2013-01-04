@@ -119,7 +119,7 @@ bool C7ZipLibrary::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArch
 							   const wstring & passwd)
 {
     if (!m_bInitialized) {
-		m_LastError = lib7zip::NOT_INITIALIZE;
+		m_LastError = lib7zip::LIB7ZIP_NOT_INITIALIZE;
         return false;
 	}
 
@@ -132,18 +132,18 @@ bool C7ZipLibrary::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArch
         if (pHandler != NULL && pHandler->OpenArchive(pInStream, NULL, ppArchive, passwd, &hr))
         {
 			if (*ppArchive)
-				(*ppArchive)->SetArchivePassword(passwd);
+				 (*ppArchive)->SetArchivePassword(passwd);
 			m_LastError = HResultToErrorCode(hr);
             return true;
         }
 
 		m_LastError = HResultToErrorCode(hr);
 
-		if (m_LastError == lib7zip::NEED_PASSWORD)
+		if (m_LastError == lib7zip::LIB7ZIP_NEED_PASSWORD)
 			return false;
     }
 
-	m_LastError = lib7zip::NOT_SUPPORTED_ARCHIVE;
+	m_LastError = lib7zip::LIB7ZIP_NOT_SUPPORTED_ARCHIVE;
     return false;
 }
 
@@ -156,7 +156,7 @@ bool C7ZipLibrary::OpenMultiVolumeArchive(C7ZipMultiVolumes * pMultiVolumes, C7Z
 										  const wstring & passwd)
 {
     if (!m_bInitialized) {
-		m_LastError = lib7zip::NOT_INITIALIZE;
+		m_LastError = lib7zip::LIB7ZIP_NOT_INITIALIZE;
         return false;
 	}
 
@@ -176,11 +176,11 @@ bool C7ZipLibrary::OpenMultiVolumeArchive(C7ZipMultiVolumes * pMultiVolumes, C7Z
 
 		m_LastError = HResultToErrorCode(hr);
 
-		if (m_LastError == lib7zip::NEED_PASSWORD)
+		if (m_LastError == lib7zip::LIB7ZIP_NEED_PASSWORD)
 			return false;
     }
 
-	m_LastError = lib7zip::NOT_SUPPORTED_ARCHIVE;
+	m_LastError = lib7zip::LIB7ZIP_NOT_SUPPORTED_ARCHIVE;
     return false;
 }
 
@@ -193,9 +193,9 @@ static lib7zip::ErrorCodeEnum HResultToErrorCode(HRESULT hr)
 {
 	switch(hr){
 	case S_OK:
-		return lib7zip::NO_ERROR;
+		return lib7zip::LIB7ZIP_NO_ERROR;
 	case E_NEEDPASSWORD:
-		return lib7zip::NEED_PASSWORD;
+		return lib7zip::LIB7ZIP_NEED_PASSWORD;
 	case S_FALSE:
 	case E_NOTIMPL:
 	case E_NOINTERFACE:
@@ -205,6 +205,6 @@ static lib7zip::ErrorCodeEnum HResultToErrorCode(HRESULT hr)
 	case E_OUTOFMEMORY:
 	case E_INVALIDARG:
 	default:
-		return lib7zip::UNKNOWN_ERROR;
+		return lib7zip::LIB7ZIP_UNKNOWN_ERROR;
 	}
 }
