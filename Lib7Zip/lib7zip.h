@@ -3,11 +3,11 @@
 
 #define LIB_7ZIP_VER_MAJOR 1
 #define LIB_7ZIP_VER_MINOR 6
-#define LIB_7ZIP_VER_BUILD 3
-#define LIB_7ZIP_VERSION "1.63"
-#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 1.63"
-#define LIB_7ZIP_DATE "2012-09"
-#define LIB_7ZIP_COPYRIGHT "Copyright (c) 2009-2012"
+#define LIB_7ZIP_VER_BUILD 4
+#define LIB_7ZIP_VERSION "1.64"
+#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 1.64"
+#define LIB_7ZIP_DATE "2013-01"
+#define LIB_7ZIP_COPYRIGHT "Copyright (c) 2009-2013"
 #define LIB_7ZIP_VERSION_COPYRIGHT_DATE MY_VERSION "  " MY_COPYRIGHT "  " MY_DATE
 
 #include <string>
@@ -82,15 +82,15 @@ namespace lib7zip {
 	};
 
 	enum ErrorCodeEnum {
-		ErrorCode_Begin,
+		LIB7ZIP_ErrorCode_Begin,
 
-		NO_ERROR = ErrorCode_Begin,
-		UNKNOWN_ERROR,
-		NOT_INITIALIZE,
-		NEED_PASSWORD,
-		NOT_SUPPORTED_ARCHIVE,
+		LIB7ZIP_NO_ERROR = LIB7ZIP_ErrorCode_Begin,
+		LIB7ZIP_UNKNOWN_ERROR,
+		LIB7ZIP_NOT_INITIALIZE,
+		LIB7ZIP_NEED_PASSWORD,
+		LIB7ZIP_NOT_SUPPORTED_ARCHIVE,
 
-		ErrorCode_End
+		LIB7ZIP_ErrorCode_End
 	};
 };
 
@@ -204,5 +204,9 @@ public:
 
     bool IsInitialized() const { return m_bInitialized; }
 };
+
+//set locale used by lib7zip, if NULL or not set, lib7zip will use user default locale
+const char * GetLib7ZipLocale();
+const char * SetLib7ZipLocale(const char * loc);
 
 #endif

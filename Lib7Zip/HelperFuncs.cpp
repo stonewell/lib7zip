@@ -25,6 +25,8 @@
 #include "CPP/7zip/IPassword.h"
 #include "CPP/7zip/Common/FileStreams.h"
 
+#include <stdlib.h>
+
 #include <locale>
 #include <iostream>
 #include <string>
@@ -37,6 +39,8 @@ bool VARIANT_BOOLToBool(VARIANT_BOOL v) { return (v != VARIANT_FALSE); }
 #endif //_OS2
 
 #include "HelperFuncs.h"
+
+static const char * g_lib7zip_loc = NULL;
 
 HRESULT ReadProp(
 				 GetHandlerPropertyFunc getProp,
@@ -279,7 +283,13 @@ HRESULT GetFilePathExt(const wstring & path, wstring & ext)
 wstring WidenString( const string& str )
 {
 	std::wostringstream wstm ;
-	wstm.imbue(std::locale("en_US.utf8"));
+    const char * loc = 
+        g_lib7zip_loc == NULL ? setlocale(LC_CTYPE, NULL) : g_lib7zip_loc;
+
+    if (loc == NULL || strlen(loc) == 0)
+      loc = "C";
+	wstm.imbue(std::locale(loc));
+
 	const std::ctype<wchar_t>& ctfacet =
 		 std::use_facet< std::ctype<wchar_t> >( wstm.getloc() ) ;
 	for( size_t i=0 ; i<str.size() ; ++i )
@@ -296,4 +306,15 @@ string NarrowString( const wstring& str )
 	for( size_t i=0 ; i<str.size() ; ++i )
 		stm << ctfacet.narrow( str[i], 0 ) ;
 	return stm.str() ;
+}
+
+//set locale used by lib7zip, if NULL or not set, lib7zip will use user default locale
+const char * GetLib7ZipLocale()
+{
+  return g_lib7zip_loc;
+}
+
+const char * SetLib7ZipLocale(const char * loc)
+{
+  g_lib7zip_loc = loc;
 }

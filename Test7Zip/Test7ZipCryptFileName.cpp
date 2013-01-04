@@ -250,7 +250,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	if (!lib.OpenArchive(&stream, &pArchive)) {
 		wprintf(L"open archive Test7ZipCryptFileName.7z without password, LastError(%X) == NEED_PASSWORD(%X)\n", 
-				lib.GetLastError(), lib7zip::NEED_PASSWORD);
+				lib.GetLastError(), lib7zip::LIB7ZIP_NEED_PASSWORD);
 	}
 
 	stream.Seek(0, FILE_BEGIN, NULL);

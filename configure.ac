@@ -1,4 +1,4 @@
-AC_INIT([lib7zip], [1.6.3], [jingnan.si@gmail.com])
+AC_INIT([lib7zip], [1.6.4], [jingnan.si@gmail.com])
 AC_CONFIG_SRCDIR(Lib7Zip/lib7zip.h)
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_MACRO_DIR([m4])
