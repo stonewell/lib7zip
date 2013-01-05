@@ -30,7 +30,11 @@ using namespace NWindows;
 
 #include "OSFunctions_UnixLike.h"
 
+#ifdef __APPLE__
+int myselect(struct dirent * pDir );
+#else
 int myselect(const struct dirent * pDir );
+#endif //__APPLE__
 
 static C7ZipObjectPtrArray * g_pHandlers = NULL;
 static C7ZipLibrary * g_pLibrary = NULL;
@@ -63,7 +67,11 @@ bool LoadDllFromFolder(C7ZipDllHandler * pMainHandler, const wstring & wfolder_n
   return true;
 }
 
+#ifdef __APPLE__
+int myselect(struct dirent * pDir )
+#else
 int myselect(const struct dirent * pDir )
+#endif //__APPLE__
 {
   if ( NULL == pDir )
     return 0;
