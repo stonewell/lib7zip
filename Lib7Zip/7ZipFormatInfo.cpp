@@ -11,6 +11,8 @@
 #include "CPP/7zip/IPassword.h"
 #include "Common/ComTry.h"
 #include "Windows/PropVariant.h"
+#include "CPP/Common/Buffer.h"
+
 using namespace NWindows;
 
 #include "HelperFuncs.h"
@@ -24,8 +26,8 @@ C7ZipFormatInfo::C7ZipFormatInfo()
     memset(&m_ClassID,0,sizeof(GUID));
     m_UpdateEnabled = false;
     m_KeepName = false;
-    m_StartSignature.clear();
-	m_FinishSignature.clear();
+    m_StartSignature.SetCapacity(0);
+	m_FinishSignature.SetCapacity(0);
 
     Exts.clear();
     AddExts.clear();
@@ -91,22 +93,30 @@ bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats)
                 i, NArchive::kKeepName, keepName);
         }
 
-		wstring startSignature;
-		wstring finishSignature;
-
-		startSignature.clear();
-		finishSignature.clear();
-
-        ReadStringProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, i, NArchive::kStartSignature, startSignature);
-        ReadStringProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, i, NArchive::kFinishSignature,  finishSignature);
-		
         C7ZipFormatInfo * pInfo = new C7ZipFormatInfo();
+
+        if (ReadProp(pFunctions->v.GetHandlerProperty, 
+                     pFunctions->v.GetHandlerProperty2, i, NArchive::kStartSignature, prop) == S_OK) {
+          if (prop.vt == VT_BSTR) {
+            UINT len = ::SysStringByteLen(prop.bstrVal);
+            pInfo->m_StartSignature.SetCapacity(len);
+            memmove(pInfo->m_StartSignature, prop.bstrVal, len);
+          }
+        }
+
+        if (ReadProp(pFunctions->v.GetHandlerProperty, 
+                     pFunctions->v.GetHandlerProperty2, i, NArchive::kFinishSignature, prop) == S_OK) {
+          if (prop.vt == VT_BSTR) {
+            UINT len = ::SysStringByteLen(prop.bstrVal);
+            pInfo->m_FinishSignature.SetCapacity(len);
+            memmove(pInfo->m_FinishSignature, prop.bstrVal, len);
+          }
+        }
+		
         pInfo->m_Name = name;
         pInfo->m_KeepName = keepName;
         pInfo->m_ClassID = classID;
         pInfo->m_UpdateEnabled = updateEnabled;
-		pInfo->m_StartSignature = startSignature;
-		pInfo->m_FinishSignature = finishSignature;
 
         SplitString(ext, pInfo->Exts);
         SplitString(addExt, pInfo->AddExts);

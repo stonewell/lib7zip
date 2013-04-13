@@ -14,7 +14,8 @@ public:
 					 C7ZipMultiVolumes * pMultiVolumes, 
 					 C7ZipArchive ** ppArchive, 
 					 const wstring & passwd,
-					 HRESULT * pResult);
+					 HRESULT * pResult,
+                     bool fCheckFileTypeBySignature);
     bool IsInitialized() const { return m_bInitialized; }
     C7ZipLibrary * GetLibrary() const { return m_pLibrary; }
     const C7ZipObjectPtrArray & GetFormatInfoArray() const { return m_FormatInfoArray; }

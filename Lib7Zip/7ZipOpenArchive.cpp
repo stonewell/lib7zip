@@ -11,6 +11,8 @@
 #include "CPP/7zip/IPassword.h"
 #include "Common/ComTry.h"
 #include "Windows/PropVariant.h"
+#include "CPP/Common/Buffer.h"
+
 using namespace NWindows;
 
 #include "HelperFuncs.h"
@@ -26,24 +28,77 @@ const UInt64 kMaxCheckStartPosition = 1 << 22;
 
 extern bool Create7ZipArchive(C7ZipLibrary * pLibrary, IInArchive * pInArchive, C7ZipArchive ** pArchive);
 
+static bool ReadStream(CMyComPtr<IInStream> & inStream, Int64 offset, UINT32 seekOrigin, CByteBuffer & signature) 
+{
+  UInt64 savedPosition = 0;
+  UInt64 newPosition = 0;
+  UInt32 readCount = signature.GetCapacity();
+  unsigned char * buf = signature;
+
+  if (S_OK != inStream->Seek(0, FILE_CURRENT, &savedPosition))
+    return false;
+
+  if (S_OK != inStream->Seek(offset, seekOrigin, &newPosition)) {
+    inStream->Seek(savedPosition, FILE_BEGIN, &newPosition); //restore pos
+    return false;
+  }
+
+  while (readCount > 0) {
+    UInt32 processedCount = 0;
+
+    if (S_OK != inStream->Read(buf, readCount, &processedCount)) {
+      inStream->Seek(savedPosition, FILE_BEGIN, &newPosition); //restore pos
+      return false;
+    }
+
+    if (processedCount == 0)
+      break;
+
+    readCount -= processedCount;
+    buf += processedCount;
+  }
+
+  inStream->Seek(savedPosition, FILE_BEGIN, &newPosition); //restore pos
+
+  return readCount == 0;
+}
+
 static int CreateInArchive(pU7ZipFunctions pFunctions,
 						   const C7ZipObjectPtrArray & formatInfos,
+                           CMyComPtr<IInStream> & inStream,
 						   wstring ext,
-						   CMyComPtr<IInArchive> &archive)
+						   CMyComPtr<IInArchive> & archive,
+                           bool fCheckFileTypeBySignature)
 {
-	for (C7ZipObjectPtrArray::const_iterator it = formatInfos.begin();
-		 it != formatInfos.end();it++) {
-		const C7ZipFormatInfo * pInfo = dynamic_cast<const C7ZipFormatInfo *>(*it);
+  for (C7ZipObjectPtrArray::const_iterator it = formatInfos.begin();
+       it != formatInfos.end();it++) {
+    const C7ZipFormatInfo * pInfo = dynamic_cast<const C7ZipFormatInfo *>(*it);
 
-		for(WStringArray::const_iterator extIt = pInfo->Exts.begin(); extIt != pInfo->Exts.end(); extIt++) {
-			if (MyStringCompareNoCase((*extIt).c_str(), ext.c_str()) == 0) {
-				return pFunctions->v.CreateObject(&pInfo->m_ClassID, 
-												  &IID_IInArchive, (void **)&archive);
-			}
-		}
-	}
+    if (!fCheckFileTypeBySignature) {
+      for(WStringArray::const_iterator extIt = pInfo->Exts.begin(); extIt != pInfo->Exts.end(); extIt++) {
+        if (MyStringCompareNoCase((*extIt).c_str(), ext.c_str()) == 0) {
+          return pFunctions->v.CreateObject(&pInfo->m_ClassID, 
+                                            &IID_IInArchive, (void **)&archive);
+        }
+      }
+    } else {
+      if (pInfo->m_StartSignature.GetCapacity() == 0 /*&& pInfo->m_FinishSignature.length() == 0*/)
+        continue; //no signature
 
-	return CLASS_E_CLASSNOTAVAILABLE;
+      CByteBuffer signature;
+      signature.SetCapacity(pInfo->m_StartSignature.GetCapacity());
+
+      if (!ReadStream(inStream, 0, FILE_BEGIN, signature))
+        continue; //unable to read signature
+
+      if (signature == pInfo->m_StartSignature) {
+        return pFunctions->v.CreateObject(&pInfo->m_ClassID, 
+                                          &IID_IInArchive, (void **)&archive);
+      }
+    } //check file type by signature
+  }
+
+  return CLASS_E_CLASSNOTAVAILABLE;
 }
 
 static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
@@ -51,14 +106,16 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
 								   C7ZipInStream * pInStream,
 								   C7ZipArchiveOpenCallback * pOpenCallBack,
 								   C7ZipArchive ** ppArchive, 
-								   HRESULT * pResult);
+								   HRESULT * pResult,
+                                   bool fCheckFileTypeBySignature);
 
 HRESULT Lib7ZipOpenArchive(C7ZipLibrary * pLibrary,
 						   C7ZipDllHandler * pHandler,
 						   C7ZipInStream * pInStream,
 						   C7ZipArchive ** ppArchive,
 						   const wstring & passwd,
-						   HRESULT * pResult)
+						   HRESULT * pResult,
+                           bool fCheckFileTypeBySignature)
 {
 	C7ZipArchiveOpenCallback * pOpenCallBack = new C7ZipArchiveOpenCallback(NULL);
 	
@@ -67,15 +124,17 @@ HRESULT Lib7ZipOpenArchive(C7ZipLibrary * pLibrary,
 		pOpenCallBack->Password = passwd;
 	}
 	
-	return InternalOpenArchive(pLibrary, pHandler, pInStream, pOpenCallBack, ppArchive, pResult);
+	return InternalOpenArchive(pLibrary, pHandler, pInStream, 
+                               pOpenCallBack, ppArchive, pResult, fCheckFileTypeBySignature);
 }
 
 HRESULT Lib7ZipOpenMultiVolumeArchive(C7ZipLibrary * pLibrary,
-								   C7ZipDllHandler * pHandler,
-								   C7ZipMultiVolumes * pMultiVolumes,
-								   C7ZipArchive ** ppArchive,
-								   const wstring & passwd,
-								   HRESULT * pResult)
+                                      C7ZipDllHandler * pHandler,
+                                      C7ZipMultiVolumes * pMultiVolumes,
+                                      C7ZipArchive ** ppArchive,
+                                      const wstring & passwd,
+                                      HRESULT * pResult,
+                                      bool fCheckFileTypeBySignature)
 {
 	wstring firstVolumeName = pMultiVolumes->GetFirstVolumeName();
 
@@ -94,7 +153,8 @@ HRESULT Lib7ZipOpenMultiVolumeArchive(C7ZipLibrary * pLibrary,
 		pOpenCallBack->Password = passwd;
 	}
 
-	return InternalOpenArchive(pLibrary, pHandler, pInStream, pOpenCallBack, ppArchive, pResult);
+	return InternalOpenArchive(pLibrary, pHandler, pInStream, 
+                               pOpenCallBack, ppArchive, pResult, fCheckFileTypeBySignature);
 }
 
 static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
@@ -102,7 +162,8 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
 								   C7ZipInStream * pInStream,
 								   C7ZipArchiveOpenCallback * pOpenCallBack,
 								   C7ZipArchive ** ppArchive, 
-								   HRESULT * pResult)
+								   HRESULT * pResult,
+                                   bool fCheckFileTypeBySignature)
 {
 	CMyComPtr<IInArchive> archive = NULL;
 	CMyComPtr<ISetCompressCodecsInfo> setCompressCodecsInfo = NULL;
@@ -118,8 +179,10 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
 	do {
 		FAIL_RET(CreateInArchive(pHandler->GetFunctions(),
 								 pHandler->GetFormatInfoArray(),
+                                 inStream,
 								 extension,
-								 archive), pResult);
+								 archive,
+                                 fCheckFileTypeBySignature), pResult);
 
 		if (archive == NULL)
 			return false;

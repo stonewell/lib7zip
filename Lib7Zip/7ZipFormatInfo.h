@@ -4,22 +4,22 @@
 class C7ZipFormatInfo : public virtual C7ZipObject
 {
 public:
-    C7ZipFormatInfo();
-    virtual ~C7ZipFormatInfo();
+  C7ZipFormatInfo();
+  virtual ~C7ZipFormatInfo();
 
 public:
-    wstring m_Name;
-    GUID m_ClassID;
-    bool m_UpdateEnabled;
-    bool m_KeepName;
+  wstring m_Name;
+  GUID m_ClassID;
+  bool m_UpdateEnabled;
+  bool m_KeepName;
 
-    WStringArray Exts;
-    WStringArray AddExts;
+  WStringArray Exts;
+  WStringArray AddExts;
 
-   wstring m_StartSignature;
-   wstring m_FinishSignature;
+  CByteBuffer m_StartSignature;
+  CByteBuffer m_FinishSignature;
 
-    int FormatIndex;
+  int FormatIndex;
 };
 
 #endif //__7ZIP_FORMAT_INFO_H__
