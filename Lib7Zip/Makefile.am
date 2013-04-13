@@ -72,10 +72,8 @@ nodist_lib7zip_la_SOURCES= $(NODIST_SOURCES)
 lib7zip_la_LDFLAGS = $(A_LIBS)
 endif
 
-EXTRA_DIST = Lib7Zip.vcproj 
+EXTRA_DIST = 
 
 DISTCLEANFILES = ../includes/CPP ../includes/C
 
-dist-hook:
-	cp -rf $(srcdir)/Lib7Zip\ -\ VS2008.vcproj $(distdir)
 
