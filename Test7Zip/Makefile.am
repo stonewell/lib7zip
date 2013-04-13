@@ -35,4 +35,4 @@ test7zprops_LDADD = ../Lib7Zip/lib7zip.a \
 test7zcrypt_LDADD = ../Lib7Zip/lib7zip.a \
 	$(A_LIBS)
 
-EXTRA_DIST = Test7Zip.vcproj
+EXTRA_DIST = 
