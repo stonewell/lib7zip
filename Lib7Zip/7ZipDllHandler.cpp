@@ -11,6 +11,8 @@
 #include "CPP/7zip/IPassword.h"
 #include "Common/ComTry.h"
 #include "Windows/PropVariant.h"
+#include "CPP/Common/Buffer.h"
+
 using namespace NWindows;
 
 #include "HelperFuncs.h"
@@ -34,13 +36,15 @@ extern HRESULT Lib7ZipOpenArchive(C7ZipLibrary * pLibrary,
 								  C7ZipInStream * pInStream,
 								  C7ZipArchive ** ppArchive,
 								  const wstring & passwd,
-								  HRESULT * pResult);
+								  HRESULT * pResult,
+                                  bool fCheckFileTypeBySignature);
 extern HRESULT Lib7ZipOpenMultiVolumeArchive(C7ZipLibrary * pLibrary,
-										  C7ZipDllHandler * pHandler,
-										  C7ZipMultiVolumes * pMultiVolumes,
-										  C7ZipArchive ** ppArchive, 
-										  const wstring & passwd,	
-										  HRESULT * pResult);
+                                             C7ZipDllHandler * pHandler,
+                                             C7ZipMultiVolumes * pMultiVolumes,
+                                             C7ZipArchive ** ppArchive, 
+                                             const wstring & passwd,	
+                                             HRESULT * pResult,
+                                             bool fCheckFileTypeBySignature);
 
 /*------------------------------ C7ZipDllHandler ------------------------*/
 C7ZipDllHandler::C7ZipDllHandler(C7ZipLibrary * pLibrary, void * pHandler) :
@@ -110,14 +114,15 @@ bool C7ZipDllHandler::GetSupportedExts(WStringArray & exts)
 
 bool C7ZipDllHandler::OpenArchive(C7ZipInStream * pInStream, C7ZipMultiVolumes * pMultiVolumes, 
 								  C7ZipArchive ** ppArchive, const wstring & passwd,
-								  HRESULT * pResult)
+								  HRESULT * pResult,
+                                  bool fCheckFileTypeBySignature)
 {
 	if (pMultiVolumes != NULL)
 		return Lib7ZipOpenMultiVolumeArchive(m_pLibrary, this, pMultiVolumes, ppArchive, 
-											 passwd, pResult) == S_OK;
+											 passwd, pResult, fCheckFileTypeBySignature) == S_OK;
 	else if (pInStream != NULL)
 		return Lib7ZipOpenArchive(m_pLibrary, this, pInStream, ppArchive, 
-								  passwd, pResult) == S_OK;
+								  passwd, pResult, fCheckFileTypeBySignature) == S_OK;
 	
 	return S_FALSE;
 }

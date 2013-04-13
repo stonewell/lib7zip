@@ -3,10 +3,10 @@
 
 #define LIB_7ZIP_VER_MAJOR 1
 #define LIB_7ZIP_VER_MINOR 6
-#define LIB_7ZIP_VER_BUILD 4
-#define LIB_7ZIP_VERSION "1.64"
-#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 1.64"
-#define LIB_7ZIP_DATE "2013-01"
+#define LIB_7ZIP_VER_BUILD 5
+#define LIB_7ZIP_VERSION "1.65"
+#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 1.65"
+#define LIB_7ZIP_DATE "2013-04"
 #define LIB_7ZIP_COPYRIGHT "Copyright (c) 2009-2013"
 #define LIB_7ZIP_VERSION_COPYRIGHT_DATE MY_VERSION "  " MY_COPYRIGHT "  " MY_DATE
 
@@ -193,10 +193,20 @@ public:
 
 	bool GetSupportedExts(WStringArray & exts);
 
-	bool OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive);
-	bool OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive, const wstring & pwd);
-	bool OpenMultiVolumeArchive(C7ZipMultiVolumes * pVolumes, C7ZipArchive ** ppArchive);
-	bool OpenMultiVolumeArchive(C7ZipMultiVolumes * pVolumes, C7ZipArchive ** ppArchive, const wstring & pwd);
+	bool OpenArchive(C7ZipInStream * pInStream, 
+                     C7ZipArchive ** ppArchive, 
+                     bool fDetectFileTypeBySignature = false);
+	bool OpenArchive(C7ZipInStream * pInStream, 
+                     C7ZipArchive ** ppArchive, 
+                     const wstring & pwd, 
+                     bool fDetectFileTypeBySignature = false);
+	bool OpenMultiVolumeArchive(C7ZipMultiVolumes * pVolumes, 
+                                C7ZipArchive ** ppArchive, 
+                                bool fDetectFileTypeBySignature = false);
+	bool OpenMultiVolumeArchive(C7ZipMultiVolumes * pVolumes, 
+                                C7ZipArchive ** ppArchive, 
+                                const wstring & pwd, 
+                                bool fDetectFileTypeBySignature = false);
 
 	lib7zip::ErrorCodeEnum GetLastError() const { return m_LastError; }
 

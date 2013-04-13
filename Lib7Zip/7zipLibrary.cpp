@@ -116,7 +116,7 @@ bool C7ZipLibrary::GetSupportedExts(WStringArray & exts)
 }
 
 bool C7ZipLibrary::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive, 
-							   const wstring & passwd)
+							   const wstring & passwd, bool fCheckFileTypeBySignature)
 {
     if (!m_bInitialized) {
 		m_LastError = lib7zip::LIB7ZIP_NOT_INITIALIZE;
@@ -129,7 +129,9 @@ bool C7ZipLibrary::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArch
         C7ZipDllHandler * pHandler = dynamic_cast<C7ZipDllHandler *>(*it);
 		HRESULT hr = S_OK;
 
-        if (pHandler != NULL && pHandler->OpenArchive(pInStream, NULL, ppArchive, passwd, &hr))
+        if (pHandler != NULL && pHandler->OpenArchive(pInStream, NULL, ppArchive, 
+                                                      passwd, &hr,
+                                                      fCheckFileTypeBySignature))
         {
 			if (*ppArchive)
 				 (*ppArchive)->SetArchivePassword(passwd);
@@ -147,13 +149,13 @@ bool C7ZipLibrary::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArch
     return false;
 }
 
-bool C7ZipLibrary::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive)
+bool C7ZipLibrary::OpenArchive(C7ZipInStream * pInStream, C7ZipArchive ** ppArchive, bool fCheckFileTypeBySignature)
 {
-	return OpenArchive(pInStream, ppArchive, L"");
+  return OpenArchive(pInStream, ppArchive, L"", fCheckFileTypeBySignature);
 }
 
 bool C7ZipLibrary::OpenMultiVolumeArchive(C7ZipMultiVolumes * pMultiVolumes, C7ZipArchive ** ppArchive,
-										  const wstring & passwd)
+										  const wstring & passwd, bool fCheckFileTypeBySignature)
 {
     if (!m_bInitialized) {
 		m_LastError = lib7zip::LIB7ZIP_NOT_INITIALIZE;
@@ -166,7 +168,9 @@ bool C7ZipLibrary::OpenMultiVolumeArchive(C7ZipMultiVolumes * pMultiVolumes, C7Z
         C7ZipDllHandler * pHandler = dynamic_cast<C7ZipDllHandler *>(*it);
 		HRESULT hr = S_OK;
 
-        if (pHandler != NULL && pHandler->OpenArchive(NULL, pMultiVolumes, ppArchive, passwd, &hr))
+        if (pHandler != NULL && pHandler->OpenArchive(NULL, pMultiVolumes, ppArchive, 
+                                                      passwd, &hr, 
+                                                      fCheckFileTypeBySignature))
         {
 			if (*ppArchive)
 				(*ppArchive)->SetArchivePassword(passwd);
@@ -184,9 +188,10 @@ bool C7ZipLibrary::OpenMultiVolumeArchive(C7ZipMultiVolumes * pMultiVolumes, C7Z
     return false;
 }
 
-bool C7ZipLibrary::OpenMultiVolumeArchive(C7ZipMultiVolumes * pInStream, C7ZipArchive ** ppArchive)
+bool C7ZipLibrary::OpenMultiVolumeArchive(C7ZipMultiVolumes * pInStream, C7ZipArchive ** ppArchive, 
+                                          bool fCheckFileTypeBySignature)
 {
-	return OpenMultiVolumeArchive(pInStream, ppArchive, L"");
+  return OpenMultiVolumeArchive(pInStream, ppArchive, L"", fCheckFileTypeBySignature);
 }
 
 static lib7zip::ErrorCodeEnum HResultToErrorCode(HRESULT hr)
