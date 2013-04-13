@@ -16,6 +16,9 @@ public:
     WStringArray Exts;
     WStringArray AddExts;
 
+   wstring m_StartSignature;
+   wstring m_FinishSignature;
+
     int FormatIndex;
 };
 
