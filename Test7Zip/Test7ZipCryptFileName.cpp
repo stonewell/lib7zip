@@ -255,7 +255,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	stream.Seek(0, FILE_BEGIN, NULL);
 
-	if (lib.OpenArchive(&stream, &pArchive, L"hello")) {
+	if (lib.OpenArchive(&stream, &pArchive, wstring(L"hello"))) {
 		unsigned int numItems = 0;
 
 		pArchive->GetItemCount(&numItems);
