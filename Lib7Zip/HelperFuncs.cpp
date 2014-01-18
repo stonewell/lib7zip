@@ -288,6 +288,9 @@ wstring WidenString( const string& str )
 
     if (loc == NULL || strlen(loc) == 0)
       loc = "C";
+
+    printf("loc=%s, %s\n", loc, g_lib7zip_loc);
+    loc = "zh_CN.UTF-8";
 	wstm.imbue(std::locale(loc));
 
 	const std::ctype<wchar_t>& ctfacet =
