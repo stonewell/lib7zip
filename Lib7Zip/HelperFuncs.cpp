@@ -289,9 +289,12 @@ wstring WidenString( const string& str )
     if (loc == NULL || strlen(loc) == 0)
       loc = "C";
 
-    printf("loc=%s, %s\n", loc, g_lib7zip_loc);
-    loc = "zh_CN.UTF-8";
-	wstm.imbue(std::locale(loc));
+    try {
+      wstm.imbue(std::locale(loc));
+    }
+    catch(...) {
+      wstm.imbue(std::locale("en_US.UTF-8"));
+    }
 
 	const std::ctype<wchar_t>& ctfacet =
 		 std::use_facet< std::ctype<wchar_t> >( wstm.getloc() ) ;
@@ -319,5 +322,8 @@ const char * GetLib7ZipLocale()
 
 const char * SetLib7ZipLocale(const char * loc)
 {
+  const char * tmp = g_lib7zip_loc;
+
   g_lib7zip_loc = loc;
+  return tmp;
 }
