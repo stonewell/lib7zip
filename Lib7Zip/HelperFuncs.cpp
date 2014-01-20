@@ -284,7 +284,7 @@ wstring WidenString( const string& str )
 {
 	std::wostringstream wstm ;
     const char * loc = 
-        g_lib7zip_loc == NULL ? setlocale(LC_CTYPE, NULL) : g_lib7zip_loc;
+        g_lib7zip_loc == NULL ? setlocale(LC_CTYPE, "") : g_lib7zip_loc;
 
     if (loc == NULL || strlen(loc) == 0)
       loc = "C";
@@ -293,7 +293,7 @@ wstring WidenString( const string& str )
       wstm.imbue(std::locale(loc));
     }
     catch(...) {
-      wstm.imbue(std::locale("en_US.UTF-8"));
+      wstm.imbue(std::locale("C"));
     }
 
 	const std::ctype<wchar_t>& ctfacet =
