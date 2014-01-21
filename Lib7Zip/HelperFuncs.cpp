@@ -289,8 +289,6 @@ wstring WidenString( const string& str )
     if (loc == NULL || strlen(loc) == 0)
       loc = "C";
 
-    printf("%s:(%s)\n", loc, g_lib7zip_loc);
-
     try {
       wstm.imbue(std::locale(loc));
     }
