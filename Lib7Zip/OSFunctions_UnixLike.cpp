@@ -26,11 +26,16 @@ using namespace NWindows;
 #endif
 #include "dlfcn.h"
 #include "unistd.h"
+
+#ifdef __APPLE__
+#include <sys/types.h>
+#endif
+
 #include "dirent.h"
 
 #include "OSFunctions_UnixLike.h"
 
-#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < __MAC_10_9
+#if __APPLE__ && (MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_9)
 int myselect(struct dirent * pDir );
 #else
 int myselect(const struct dirent * pDir );
@@ -67,7 +72,7 @@ bool LoadDllFromFolder(C7ZipDllHandler * pMainHandler, const wstring & wfolder_n
   return true;
 }
 
-#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < __MAC_10_9
+#if __APPLE__ && (MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_9)
 int myselect(struct dirent * pDir )
 #else
 int myselect(const struct dirent * pDir )
