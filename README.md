@@ -7,12 +7,14 @@ Tips
     * Under UNIX/LINUX like system
         * Get a copy of p7zip source code, and extract to a folder
         * Define a env P7ZIP_SOURCE_DIR point to the extracted folder
+        * ./autogen.sh
         * Remove includes/C and includes/CPP completely if they are existing.
         * Call configure *__--disable-dependency-tracking__* && make to build lib7zip library, or call autogen.sh
     * Under windows
         * Get mingw from http://www.mingw.org
         * Get a copy of original 7zip source code, NOT the p7zip for linux
         * Define a env P7ZIP_SOURCE_DIR point to the extracted folder
+        * ./autogen.sh
         * Remove includes/C and includes/CPP completely if they are existing.
         * Call configure *__--disable-dependency-tracking__* && make to build lib7zip library, or call autogen.sh
 * Run lib7zip
