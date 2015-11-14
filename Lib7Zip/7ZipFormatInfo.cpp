@@ -126,7 +126,7 @@ bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats)
 #endif	        
           if (prop.vt == VT_BSTR) {
             UINT len = ::SysStringByteLen(prop.bstrVal);
-#if MY_VER_MAJOR >= 15
+#if MY_VER_MAJOR >= 15 && defined(_WIN32)
             pInfo->m_StartSignature.CopyFrom((const Byte *)prop.bstrVal, len);
 #else          
             pInfo->m_StartSignature.SetCapacity(len);
@@ -144,7 +144,7 @@ bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats)
 #endif	        
           if (prop.vt == VT_BSTR) {
             UINT len = ::SysStringByteLen(prop.bstrVal);
-#if MY_VER_MAJOR >= 15
+#if MY_VER_MAJOR >= 15 && defined(_WIN32)
             pInfo->m_FinishSignature.CopyFrom((const Byte *)prop.bstrVal, len);
 #else          
             pInfo->m_FinishSignature.SetCapacity(len);

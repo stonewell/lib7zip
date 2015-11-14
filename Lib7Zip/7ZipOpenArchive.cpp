@@ -43,7 +43,7 @@ static bool ReadStream(CMyComPtr<IInStream> & inStream, Int64 offset, UINT32 see
 {
   UInt64 savedPosition = 0;
   UInt64 newPosition = 0;
-#if MY_VER_MAJOR >= 15
+#if MY_VER_MAJOR >= 15 && defined(_WIN32)
   UInt32 readCount = signature.Size();
 #else
   UInt32 readCount = signature.GetCapacity();
@@ -97,14 +97,14 @@ static int CreateInArchive(pU7ZipFunctions pFunctions,
         }
       }
     } else {
-#if MY_VER_MAJOR >= 15
+#if MY_VER_MAJOR >= 15 && defined(_WIN32)
       if (pInfo->m_StartSignature.Size() == 0 /*&& pInfo->m_FinishSignature.length() == 0*/)
 #else     
       if (pInfo->m_StartSignature.GetCapacity() == 0 /*&& pInfo->m_FinishSignature.length() == 0*/)
 #endif          
         continue; //no signature
 
-#if MY_VER_MAJOR >= 15
+#if MY_VER_MAJOR >= 15 && defined(_WIN32)
       CByteBuffer signature(pInfo->m_StartSignature.Size());
 #else      
       CByteBuffer signature;
