@@ -4,6 +4,9 @@
 #undef S_OK
 #endif
 
+#include "C/7zVersion.h"
+#include "CPP/myWindows/StdAfx.h"
+#include "CPP/include_windows/windows.h"
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/Windows/PropVariant.h"
 #include "CPP/Common/MyCom.h"
@@ -38,10 +41,7 @@ STDMETHODIMP C7ZipArchiveOpenCallback::CryptoGetTextPassword(BSTR *password)
 #ifdef _WIN32
     return StringToBstr(Password.c_str(), password);
 #else
-	CMyComBSTR temp(Password.c_str());
-
-	*password = temp.MyCopy();
-
+    *password = ::SysAllocString(Password.c_str());
 	return S_OK;
 #endif
 }

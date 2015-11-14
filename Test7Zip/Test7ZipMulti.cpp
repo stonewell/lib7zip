@@ -123,7 +123,8 @@ private:
 public:
 	TestMultiVolumes(wstring fileName) :
 	  m_strFileName(fileName),
-	  m_pFile(NULL)
+	  m_pFile(NULL),
+	  m_done(false)
 	{
 	}
 

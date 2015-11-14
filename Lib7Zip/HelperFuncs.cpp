@@ -145,16 +145,19 @@ HRESULT GetMethodPropertyGUID(GetMethodPropertyFunc getMethodProperty, UInt32 in
     return S_OK;
 }
 
-
+#if MY_VER_MAJOR >= 15
+//after version 15, MyCharUpper defined inline in MyString.h
+#else
 #ifdef _WIN32
-inline wchar_t MyCharUpper(wchar_t c)
+inline wchar_t MyCharUpper(wchar_t c) LIB7ZIP_THROW
 { return (wchar_t)(unsigned int)(UINT_PTR)CharUpperW((LPWSTR)(UINT_PTR)(unsigned int)c); }
 #else
-inline wchar_t MyCharUpper(wchar_t c)
+inline wchar_t MyCharUpper(wchar_t c) LIB7ZIP_THROW
 { return toupper(c); }
 #endif
+#endif
 
-int MyStringCompareNoCase(const wchar_t *s1, const wchar_t *s2)
+int MyStringCompareNoCase(const wchar_t *s1, const wchar_t *s2) LIB7ZIP_THROW
 {
 	for (;;) {
 		wchar_t c1 = *s1++;

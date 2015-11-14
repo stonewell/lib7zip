@@ -4,6 +4,8 @@
 #undef S_OK
 #endif
 
+#include "CPP/myWindows/StdAfx.h"
+#include "CPP/include_windows/windows.h"
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/7zip/MyVersion.h"
 #include "CPP/Windows/PropVariant.h"
@@ -285,12 +287,6 @@ STDMETHODIMP CArchiveExtractCallback::SetOperationResult(Int32 operationResult)
 		{
 			switch(operationResult)
 			{
-			case NArchive::NExtract::NOperationResult::kUnSupportedMethod:
-				break;
-			case NArchive::NExtract::NOperationResult::kCRCError:
-				break;
-			case NArchive::NExtract::NOperationResult::kDataError:
-				break;
 			default:
 				break;
 			}
@@ -305,9 +301,6 @@ STDMETHODIMP CArchiveExtractCallback::SetOperationResult(Int32 operationResult)
 
 STDMETHODIMP CArchiveExtractCallback::CryptoGetTextPassword(BSTR *password)
 {
-#ifdef _WIN32
-	return StringToBstr(L"", password);
-#else
 	wstring strPassword(L"");
 
 	if (m_pItem->IsPasswordSet())
@@ -315,10 +308,11 @@ STDMETHODIMP CArchiveExtractCallback::CryptoGetTextPassword(BSTR *password)
 	else if (m_pArchive->IsPasswordSet())
 		strPassword = m_pArchive->GetArchivePassword();
 	
-	CMyComBSTR temp(strPassword.c_str());
-
-	*password = temp.MyCopy();
-
+#ifdef _WIN32
+	return StringToBstr(strPassword.c_str(), password);
+#else
+	*password = ::SysAllocString(strPassword.c_str());
+	
 	return S_OK;
 #endif
 }

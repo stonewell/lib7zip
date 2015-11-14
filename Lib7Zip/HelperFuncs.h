@@ -9,8 +9,13 @@
 #define FAIL_RET(x, pResult) { HRESULT __result__ = (x); if (pResult) *pResult = __result__; if (__result__ != S_OK) return __result__; }
 #endif
 
+#if MY_VER_MAJOR >= 15
+#define LIB7ZIP_THROW throw()
+#else
+#define LIB7ZIP_THROW
 #ifndef _WIN32
 #define WINAPI
+#endif
 #endif
 
 typedef UInt32 (WINAPI *GetMethodPropertyFunc)(UInt32 index, PROPID propID, PROPVARIANT *value);
@@ -43,7 +48,7 @@ HRESULT GetCoderClass(GetMethodPropertyFunc getMethodProperty, UInt32 index,
 
 HRESULT IsArchiveItemFolder(IInArchive *archive, UInt32 index, bool &result);
 
-int MyStringCompareNoCase(const wchar_t *s1, const wchar_t *s2);
+int MyStringCompareNoCase(const wchar_t *s1, const wchar_t *s2) LIB7ZIP_THROW;
 
 HRESULT GetMethodPropertyString(GetMethodPropertyFunc getMethodProperty, UInt32 index,
                              PROPID propId, wstring & val);

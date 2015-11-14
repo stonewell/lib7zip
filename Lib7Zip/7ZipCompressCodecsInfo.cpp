@@ -4,6 +4,9 @@
 #undef S_OK
 #endif
 
+#include "C/7zVersion.h"
+#include "CPP/myWindows/StdAfx.h"
+#include "CPP/include_windows/windows.h"
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/Windows/PropVariant.h"
 #include "CPP/Common/MyCom.h"
@@ -59,7 +62,11 @@ void C7ZipCompressCodecsInfo::InitData()
     }
 }
 
+#if MY_VER_MAJOR >= 15
+HRESULT C7ZipCompressCodecsInfo::GetNumMethods(UInt32 *numMethods)
+#else
 HRESULT C7ZipCompressCodecsInfo::GetNumberOfMethods(UInt32 *numMethods)
+#endif		
 {
     *numMethods = (UInt32)m_CodecInfoArray.size();
 

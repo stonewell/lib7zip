@@ -19,6 +19,11 @@ public:
   CByteBuffer m_StartSignature;
   CByteBuffer m_FinishSignature;
 
+#if MY_VER_MAJOR >= 15
+	UInt32 SignatureOffset;
+    CObjectVector<CByteBuffer> Signatures;
+#endif
+	
   int FormatIndex;
 };
 

@@ -8,7 +8,10 @@ A_EXTRA_FLAGS =
 A_LIBS = -no-undefined
 endif
 
-AM_CPPFLAGS = -I../includes -I../includes/CPP -I../includes/CPP/myWindows -I../includes/CPP/include_windows \
+AM_CPPFLAGS = -I../includes \
+	-I../includes/CPP \
+	-I../includes/CPP/myWindows \
+	-I../includes/CPP/include_windows \
 	$(A_EXTRA_FLAGS)
 
 SOURCES = \

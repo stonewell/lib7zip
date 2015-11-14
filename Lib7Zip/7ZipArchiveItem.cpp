@@ -4,6 +4,8 @@
 #undef S_OK
 #endif
 
+#include "CPP/myWindows/StdAfx.h"
+#include "CPP/include_windows/windows.h"
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/Windows/PropVariant.h"
 #include "CPP/Common/MyCom.h"
