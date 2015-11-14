@@ -12,7 +12,7 @@ Tips
         * Get mingw from http://www.mingw.org
         * Get a copy of original 7zip source code, NOT the p7zip for linux
         * Define a env P7ZIP_SOURCE_DIR point to the extracted folder
-        * Call configure && make to build lib7zip library, or call autogen.sh
+        * Call configure *__--disable-dependency-tracking__* && make to build lib7zip library, or call autogen.sh
 * Run lib7zip
     * Under UNIX/LINUX like system
         * install p7zip binary
