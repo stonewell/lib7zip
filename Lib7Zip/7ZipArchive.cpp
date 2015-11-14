@@ -4,8 +4,11 @@
 #undef S_OK
 #endif
 
+#if !defined(_WIN32) && !defined(_OS2)
 #include "CPP/myWindows/StdAfx.h"
 #include "CPP/include_windows/windows.h"
+#endif
+
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/7zip/MyVersion.h"
 #include "CPP/Windows/PropVariant.h"

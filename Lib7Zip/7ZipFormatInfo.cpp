@@ -4,9 +4,12 @@
 #undef S_OK
 #endif
 
-#include "C/7zVersion.h"
+#if !defined(_WIN32) && !defined(_OS2)
 #include "CPP/myWindows/StdAfx.h"
 #include "CPP/include_windows/windows.h"
+#endif
+
+#include "C/7zVersion.h"
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/Windows/PropVariant.h"
 #include "CPP/Common/MyCom.h"
@@ -14,7 +17,12 @@
 #include "CPP/7zip/IPassword.h"
 #include "Common/ComTry.h"
 #include "Windows/PropVariant.h"
+
+#ifdef _WIN32
+#include "CPP/Common/MyBuffer.h"
+#else
 #include "CPP/Common/Buffer.h"
+#endif
 
 #if MY_VER_MAJOR >= 15
 #define NArchiveEnumPrefix NArchive::NHandlerPropID
@@ -30,14 +38,19 @@ using namespace NWindows;
 
 /*------------------------ C7ZipFormatInfo ---------------------*/
 C7ZipFormatInfo::C7ZipFormatInfo()
+    : m_StartSignature()
+    , m_FinishSignature()
 {
     m_Name.clear();
     memset(&m_ClassID,0,sizeof(GUID));
     m_UpdateEnabled = false;
     m_KeepName = false;
+
+#if MY_VER_MAJOR < 15    
     m_StartSignature.SetCapacity(0);
 	m_FinishSignature.SetCapacity(0);
-
+#endif
+    
     Exts.clear();
     AddExts.clear();
 }
@@ -113,8 +126,12 @@ bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats)
 #endif	        
           if (prop.vt == VT_BSTR) {
             UINT len = ::SysStringByteLen(prop.bstrVal);
+#if MY_VER_MAJOR >= 15
+            pInfo->m_StartSignature.CopyFrom((const Byte *)prop.bstrVal, len);
+#else          
             pInfo->m_StartSignature.SetCapacity(len);
             memmove(pInfo->m_StartSignature, prop.bstrVal, len);
+#endif            
           }
         }
 
@@ -127,8 +144,12 @@ bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats)
 #endif	        
           if (prop.vt == VT_BSTR) {
             UINT len = ::SysStringByteLen(prop.bstrVal);
+#if MY_VER_MAJOR >= 15
+            pInfo->m_FinishSignature.CopyFrom((const Byte *)prop.bstrVal, len);
+#else          
             pInfo->m_FinishSignature.SetCapacity(len);
             memmove(pInfo->m_FinishSignature, prop.bstrVal, len);
+#endif            
           }
         }
         

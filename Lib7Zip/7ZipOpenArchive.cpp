@@ -4,9 +4,12 @@
 #undef S_OK
 #endif
 
-#include "C/7zVersion.h"
+#if !defined(_WIN32) && !defined(_OS2)
 #include "CPP/myWindows/StdAfx.h"
 #include "CPP/include_windows/windows.h"
+#endif
+
+#include "C/7zVersion.h"
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/Windows/PropVariant.h"
 #include "CPP/Common/MyCom.h"
@@ -14,7 +17,12 @@
 #include "CPP/7zip/IPassword.h"
 #include "Common/ComTry.h"
 #include "Windows/PropVariant.h"
+
+#ifdef _WIN32
+#include "CPP/Common/MyBuffer.h"
+#else
 #include "CPP/Common/Buffer.h"
+#endif
 
 using namespace NWindows;
 
@@ -35,7 +43,11 @@ static bool ReadStream(CMyComPtr<IInStream> & inStream, Int64 offset, UINT32 see
 {
   UInt64 savedPosition = 0;
   UInt64 newPosition = 0;
+#if MY_VER_MAJOR >= 15
+  UInt32 readCount = signature.Size();
+#else
   UInt32 readCount = signature.GetCapacity();
+#endif  
   unsigned char * buf = signature;
 
   if (S_OK != inStream->Seek(0, FILE_CURRENT, &savedPosition))
@@ -85,12 +97,20 @@ static int CreateInArchive(pU7ZipFunctions pFunctions,
         }
       }
     } else {
+#if MY_VER_MAJOR >= 15
+      if (pInfo->m_StartSignature.Size() == 0 /*&& pInfo->m_FinishSignature.length() == 0*/)
+#else     
       if (pInfo->m_StartSignature.GetCapacity() == 0 /*&& pInfo->m_FinishSignature.length() == 0*/)
+#endif          
         continue; //no signature
 
+#if MY_VER_MAJOR >= 15
+      CByteBuffer signature(pInfo->m_StartSignature.Size());
+#else      
       CByteBuffer signature;
       signature.SetCapacity(pInfo->m_StartSignature.GetCapacity());
-
+#endif
+      
       if (!ReadStream(inStream, 0, FILE_BEGIN, signature))
         continue; //unable to read signature
 

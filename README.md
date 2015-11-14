@@ -43,7 +43,8 @@ Change Log
 ====
 2.0.0
 ----
-1. Make the library compiling with latest p7zip 15.9.0
+1. Make the library compiling with latest p7zip 15.9.0 and 7zip 15.10.0
+2. Fix bug in test7zipmulti
 
 1.6.5
 ----

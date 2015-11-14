@@ -4,9 +4,18 @@
 #undef S_OK
 #endif
 
-#include "C/7zVersion.h"
+#if !defined(_WIN32) && !defined(_OS2)
 #include "CPP/myWindows/StdAfx.h"
 #include "CPP/include_windows/windows.h"
+#endif
+
+#ifdef _WIN32
+#include "CPP/Common/MyBuffer.h"
+#else
+#include "CPP/Common/Buffer.h"
+#endif
+
+#include "C/7zVersion.h"
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/Windows/PropVariant.h"
 #include "CPP/Common/MyCom.h"
@@ -14,7 +23,6 @@
 #include "CPP/7zip/IPassword.h"
 #include "Common/ComTry.h"
 #include "Windows/PropVariant.h"
-#include "CPP/Common/Buffer.h"
 
 using namespace NWindows;
 
