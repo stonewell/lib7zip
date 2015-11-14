@@ -1,4 +1,4 @@
-bin_PROGRAMS = test7zip test7zipmulti test7zprops test7zcrypt test7zipsig
+bin_PROGRAMS = test7zip test7zipmulti test7zprops test7zcrypt test7zipsig test7ziprar5
 
 test7zip_SOURCES = \
 	stdafx.cpp  stdafx.h  Test7Zip.cpp
@@ -14,6 +14,9 @@ test7zcrypt_SOURCES = \
 
 test7zipsig_SOURCES = \
 	stdafx.cpp  stdafx.h  Test7ZipSignature.cpp
+
+test7ziprar5_SOURCES = \
+	stdafx.cpp  stdafx.h  Test7ZipRar5.cpp
 if WIN32
 A_LIBS = -loleaut32 -luuid
 else
@@ -33,6 +36,9 @@ test7zprops_LDADD = ../Lib7Zip/lib7zip.a \
 	$(A_LIBS)
 
 test7zcrypt_LDADD = ../Lib7Zip/lib7zip.a \
+	$(A_LIBS)
+
+test7ziprar5_LDADD = ../Lib7Zip/lib7zip.a \
 	$(A_LIBS)
 
 EXTRA_DIST = 
