@@ -8,6 +8,7 @@
 #undef S_OK
 #endif
 
+#define BUILD_LIB7ZIP
 #ifndef INITGUID
 #define INITGUID
 #endif
