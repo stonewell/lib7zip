@@ -36,6 +36,22 @@ using namespace NWindows;
 #include "7ZipFunctions.h"
 #include "7ZipFormatInfo.h"
 
+static bool ParseSignatures(const Byte *data, unsigned size, CObjectVector<CByteBuffer> &signatures)
+{
+  signatures.Clear();
+  while (size > 0)
+  {
+    unsigned len = *data++;
+    size--;
+    if (len > size)
+      return false;
+    signatures.AddNew().CopyFrom(data, len);
+    data += len;
+    size -= len;
+  }
+  return true;
+}
+
 /*------------------------ C7ZipFormatInfo ---------------------*/
 C7ZipFormatInfo::C7ZipFormatInfo()
     : m_StartSignature()
@@ -131,6 +147,10 @@ bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats)
 #else          
             pInfo->m_StartSignature.SetCapacity(len);
             memmove(pInfo->m_StartSignature, prop.bstrVal, len);
+#endif
+#if MY_VER_MAJOR >= 15
+            if (len > 0)
+                pInfo->Signatures.Add(pInfo->m_StartSignature);
 #endif            
           }
         }
@@ -149,10 +169,30 @@ bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats)
 #else          
             pInfo->m_FinishSignature.SetCapacity(len);
             memmove(pInfo->m_FinishSignature, prop.bstrVal, len);
+#endif
+#if MY_VER_MAJOR >= 15
+            ParseSignatures(pInfo->m_FinishSignature,
+                            (unsigned)pInfo->m_FinishSignature.Size(),
+                            pInfo->Signatures);
 #endif            
           }
         }
-        
+
+#if MY_VER_MAJOR >= 15
+        if (ReadProp(pFunctions->v.GetHandlerProperty, 
+                     pFunctions->v.GetHandlerProperty2, i,
+                     NArchiveEnumPrefix::kSignatureOffset, prop) == S_OK) {
+            if (prop.vt == VT_UI4) {
+                pInfo->SignatureOffset = prop.ulVal;
+            }
+            else {
+                pInfo->SignatureOffset = 0;
+            }
+        }
+        else {
+            pInfo->SignatureOffset = 0;
+        }
+#endif
         pInfo->m_Name = name;
         pInfo->m_KeepName = keepName;
         pInfo->m_ClassID = classID;

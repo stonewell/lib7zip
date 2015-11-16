@@ -97,19 +97,28 @@ static int CreateInArchive(pU7ZipFunctions pFunctions,
         }
       }
     } else {
-#if MY_VER_MAJOR >= 15 && defined(_WIN32)
-      if (pInfo->m_StartSignature.Size() == 0 /*&& pInfo->m_FinishSignature.length() == 0*/)
+#if MY_VER_MAJOR >= 15
+      if (pInfo->Signatures.Size() == 0 /*&& pInfo->m_FinishSignature.length() == 0*/)
 #else     
       if (pInfo->m_StartSignature.GetCapacity() == 0 /*&& pInfo->m_FinishSignature.length() == 0*/)
 #endif          
         continue; //no signature
 
-#if MY_VER_MAJOR >= 15 && defined(_WIN32)
-      CByteBuffer signature(pInfo->m_StartSignature.Size());
+#if MY_VER_MAJOR >= 15
+      for(unsigned i = 0; i < pInfo->Signatures.Size(); i++) {
+          CByteBuffer signature(pInfo->Signatures[i].Size());
+          
+          if (!ReadStream(inStream, pInfo->SignatureOffset, FILE_BEGIN, signature))
+              continue; //unable to read signature
+
+          if (signature == pInfo->Signatures[i]) {
+              return pFunctions->v.CreateObject(&pInfo->m_ClassID, 
+                                                &IID_IInArchive, (void **)&archive);
+          }
+      }
 #else      
       CByteBuffer signature;
       signature.SetCapacity(pInfo->m_StartSignature.GetCapacity());
-#endif
       
       if (!ReadStream(inStream, 0, FILE_BEGIN, signature))
         continue; //unable to read signature
@@ -118,6 +127,7 @@ static int CreateInArchive(pU7ZipFunctions pFunctions,
         return pFunctions->v.CreateObject(&pInfo->m_ClassID, 
                                           &IID_IInArchive, (void **)&archive);
       }
+#endif
     } //check file type by signature
   }
 
