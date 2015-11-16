@@ -49,11 +49,12 @@ lib7zip_a_CFLAGS = $(AM_CFLAGS)
 lib7zip_a_CPPFLAGS = $(AM_CPPFLAGS)
 
 if WIN32
-lib7zip.dll:
+lib7zip.dll:$(lib7zip_a_OBJECTS)
 	$(CXXLD) -shared $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(lib7zip_a_LDFLAGS) $(LDFLAGS) -o $@ $(lib7zip_a_OBJECTS) $(A_LIBS)
 
 all-local:lib7zip.dll
+	-mkdir -p ../lib
 	-cp lib7zip.dll ../lib
 
 clean-local:
