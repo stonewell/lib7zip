@@ -9,7 +9,7 @@
 #include "CPP/include_windows/windows.h"
 #endif
 
-#ifdef _WIN32
+#if MY_VER_MAJOR >= 15
 #include "CPP/Common/MyBuffer.h"
 #else
 #include "CPP/Common/Buffer.h"

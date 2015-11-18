@@ -18,7 +18,7 @@
 #include "Common/ComTry.h"
 #include "Windows/PropVariant.h"
 
-#ifdef _WIN32
+#if MY_VER_MAJOR >= 15
 #include "CPP/Common/MyBuffer.h"
 #else
 #include "CPP/Common/Buffer.h"
@@ -43,7 +43,7 @@ static bool ReadStream(CMyComPtr<IInStream> & inStream, Int64 offset, UINT32 see
 {
   UInt64 savedPosition = 0;
   UInt64 newPosition = 0;
-#if MY_VER_MAJOR >= 15 && defined(_WIN32)
+#if MY_VER_MAJOR >= 15
   UInt32 readCount = signature.Size();
 #else
   UInt32 readCount = signature.GetCapacity();

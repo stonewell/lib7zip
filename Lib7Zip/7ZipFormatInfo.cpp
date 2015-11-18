@@ -18,7 +18,7 @@
 #include "Common/ComTry.h"
 #include "Windows/PropVariant.h"
 
-#ifdef _WIN32
+#if MY_VER_MAJOR >= 15
 #include "CPP/Common/MyBuffer.h"
 #else
 #include "CPP/Common/Buffer.h"
@@ -36,6 +36,7 @@ using namespace NWindows;
 #include "7ZipFunctions.h"
 #include "7ZipFormatInfo.h"
 
+#if MY_VER_MAJOR >= 15
 static bool ParseSignatures(const Byte *data, unsigned size, CObjectVector<CByteBuffer> &signatures)
 {
   signatures.Clear();
@@ -51,6 +52,7 @@ static bool ParseSignatures(const Byte *data, unsigned size, CObjectVector<CByte
   }
   return true;
 }
+#endif
 
 /*------------------------ C7ZipFormatInfo ---------------------*/
 C7ZipFormatInfo::C7ZipFormatInfo()
@@ -142,7 +144,7 @@ bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats)
 #endif	        
           if (prop.vt == VT_BSTR) {
             UINT len = ::SysStringByteLen(prop.bstrVal);
-#if MY_VER_MAJOR >= 15 && defined(_WIN32)
+#if MY_VER_MAJOR >= 15
             pInfo->m_StartSignature.CopyFrom((const Byte *)prop.bstrVal, len);
 #else          
             pInfo->m_StartSignature.SetCapacity(len);
@@ -164,17 +166,15 @@ bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats)
 #endif	        
           if (prop.vt == VT_BSTR) {
             UINT len = ::SysStringByteLen(prop.bstrVal);
-#if MY_VER_MAJOR >= 15 && defined(_WIN32)
+#if MY_VER_MAJOR >= 15
             pInfo->m_FinishSignature.CopyFrom((const Byte *)prop.bstrVal, len);
+            ParseSignatures(pInfo->m_FinishSignature,
+                            (unsigned)pInfo->m_FinishSignature.Size(),
+                            pInfo->Signatures);
 #else          
             pInfo->m_FinishSignature.SetCapacity(len);
             memmove(pInfo->m_FinishSignature, prop.bstrVal, len);
 #endif
-#if MY_VER_MAJOR >= 15
-            ParseSignatures(pInfo->m_FinishSignature,
-                            (unsigned)pInfo->m_FinishSignature.Size(),
-                            pInfo->Signatures);
-#endif            
           }
         }
 
