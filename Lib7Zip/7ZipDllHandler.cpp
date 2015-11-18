@@ -9,12 +9,6 @@
 #include "CPP/include_windows/windows.h"
 #endif
 
-#if MY_VER_MAJOR >= 15
-#include "CPP/Common/MyBuffer.h"
-#else
-#include "CPP/Common/Buffer.h"
-#endif
-
 #include "C/7zVersion.h"
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/Windows/PropVariant.h"
@@ -23,6 +17,12 @@
 #include "CPP/7zip/IPassword.h"
 #include "Common/ComTry.h"
 #include "Windows/PropVariant.h"
+#if MY_VER_MAJOR >= 15
+#include "CPP/Common/MyBuffer.h"
+#else
+#include "CPP/Common/Buffer.h"
+#endif
+
 
 using namespace NWindows;
 
