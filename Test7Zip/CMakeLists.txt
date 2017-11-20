@@ -39,6 +39,11 @@ set(test7ziprar5_SOURCES
   ${SRC}/Test7ZipRar5.cpp
 )
 
+set(test7zipcallback_SOURCES
+  ${SRC}/stdafx.cpp
+  ${SRC}/Test7ZipCallback.cpp
+)
+
 add_executable(test7zip ${test7zip_SOURCES})
 target_link_libraries(test7zip 7zip)
 
@@ -56,6 +61,9 @@ target_link_libraries(test7zipsig 7zip)
 
 add_executable(test7ziprar5 ${test7ziprar5_SOURCES})
 target_link_libraries(test7ziprar5 7zip)
+
+add_executable(test7zipcallback ${test7zipcallback_SOURCES})
+target_link_libraries(test7zipcallback 7zip)
 
 configure_file(${SRC}/Test7Zip.7z ${CMAKE_CURRENT_BINARY_DIR}/Test7Zip.7z COPYONLY)
 configure_file(${SRC}/Test7Zip.zip ${CMAKE_CURRENT_BINARY_DIR}/Test7Zip.zip COPYONLY)
