@@ -59,8 +59,10 @@ public:
 
 	virtual ~TestInStream()
 	{
-		if (m_pFile)
+		if (m_pFile) {
 			fclose(m_pFile);
+			m_pFile = NULL;
+		}
 	}
 
 public:
