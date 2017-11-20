@@ -18,6 +18,9 @@ This fork includes the following changes:
   * Only look for `7z.dll` or `7z.so` in the executable's directory, as opposed to:
     * a bunch of paths on linux/mac (in /usr, /usr/local, and ".")
     * all entries of `%PATH%` on windows (which includes ".")
+  * Add a new API, `ExtractSeveral`
+    * Pass a subclass of `C7ZipExtractCallback`
+    * This allows extracting formats like .7z faster, otherwise it keeps re-extracting the same blocks
 
 This fork was made for internal purposes, to expose the 7-zip API to
 <https://github.com/itchio/butler>.
