@@ -253,14 +253,6 @@ bool C7ZipArchiveImpl::ExtractSeveral(unsigned int *indexList, int numIndices, C
 	CCustomArchiveExtractCallback *extractCallbackSpec = new CCustomArchiveExtractCallback(pCallback);
 	CMyComPtr<IArchiveExtractCallback> extractCallback(extractCallbackSpec);
 
-	fprintf(stderr, "C7ZipArchiveImpl: passed %d indices\n", numIndices);
-	fflush(stderr);
-
-  for (int i = 0; i < numIndices; i++) {
-		fprintf(stderr, "C7ZipArchiveImpl: index %d = %u\n", i, indexList[i]);
-		fflush(stderr);
-	}
-
 	return m_pInArchive->Extract(indexList, numIndices, false, extractCallbackSpec) == S_OK;
 }
 
@@ -337,29 +329,16 @@ STDMETHODIMP CCustomArchiveExtractCallback::SetCompleted(const UInt64 * complete
 STDMETHODIMP CCustomArchiveExtractCallback::GetStream(UInt32 index,
 												ISequentialOutStream **outStream, Int32 askExtractMode)
 {
-	fprintf(stderr, "CCustomArchive::GetStream(%u)\n", index);
-	fflush(stderr);
-
 	if (askExtractMode != NArchive::NExtract::NAskMode::kExtract) {
-		fprintf(stderr, "CCustomArchive::GetStream(%u) - not extract (passed %d, wanted %d)\n", index,
-			askExtractMode, NArchive::NExtract::NAskMode::kExtract);
-		fflush(stderr);
-
 		// nothing to do then!
 		return S_OK;
 	}
 
 	m_pSequentialOutStream = m_pCallback->GetStream(index);
 	if (!m_pSequentialOutStream) {
-		fprintf(stderr, "CCustomArchive::GetStream - null callback->GetStream() result\n", index);
-		fflush(stderr);
-
 		// then just don't extract it I guess?
 		return S_OK;
 	}
-
-	fprintf(stderr, "CCustomArchive::GetStream - doing a wraperoo!\n", index);
-	fflush(stderr);
 
 	_outFileStreamSpec = new C7ZipSequentialOutStreamWrap(m_pSequentialOutStream);
 	CMyComPtr<ISequentialOutStream> outStreamLoc(_outFileStreamSpec);
@@ -401,8 +380,6 @@ STDMETHODIMP CCustomArchiveExtractCallback::SetOperationResult(Int32 operationRe
 
 STDMETHODIMP CCustomArchiveExtractCallback::CryptoGetTextPassword(BSTR *password)
 {
-	fprintf(stderr, "CryptoGetTextPassword called!\n");
-	fflush(stderr);
 	return E_NOTIMPL;
 }
 
@@ -421,9 +398,6 @@ STDMETHODIMP CArchiveExtractCallback::SetCompleted(const UInt64 * /* completeVal
 STDMETHODIMP CArchiveExtractCallback::GetStream(UInt32 index,
 												ISequentialOutStream **outStream, Int32 askExtractMode)
 {
-	fprintf(stderr, "CArchive::GetStream(%u) - (passed %d, want %d)\n", index, askExtractMode, NArchive::NExtract::NAskMode::kExtract);
-	fflush(stderr);
-
 	if (askExtractMode != NArchive::NExtract::NAskMode::kExtract)
 		return S_OK;
 
