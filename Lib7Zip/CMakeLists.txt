@@ -36,7 +36,11 @@ include_directories(
   ${UPSTREAM_INCLUDE_DIR}/CPP/include_windows
 )
 
-# TODO: includes
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  set(OSFUNCTIONS_SOURCE ${SOURCE_DIR}/OSFunctions_Win32.cpp)
+else()
+  set(OSFUNCTIONS_SOURCE ${SOURCE_DIR}/OSFunctions_UnixLike.cpp)
+endif()
 
 set (lib7zip_SOURCES
   ${SOURCE_DIR}/7ZipArchive.cpp
@@ -50,9 +54,8 @@ set (lib7zip_SOURCES
   ${SOURCE_DIR}/7ZipFormatInfo.cpp
   ${SOURCE_DIR}/7ZipObjectPtrArray.cpp
   ${SOURCE_DIR}/7ZipOpenArchive.cpp
-  ${SOURCE_DIR}/OSFunctions_UnixLike.cpp
-  ${SOURCE_DIR}/OSFunctions_Win32.cpp
   ${SOURCE_DIR}/7ZipInStreamWrapper.cpp
+  ${OSFUNCTIONS_SOURCE}
 )
 
 add_library(7zip STATIC ${lib7zip_SOURCES})
