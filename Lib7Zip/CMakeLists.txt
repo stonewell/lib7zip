@@ -31,20 +31,23 @@ include_directories(
 # TODO: includes
 
 set (lib7zip_SOURCES
-  7ZipArchive.cpp
-  7ZipArchiveItem.cpp
-  7zipLibrary.cpp
-  HelperFuncs.cpp
-  7ZipArchiveOpenCallback.cpp
-  7ZipCodecInfo.cpp
-  7ZipCompressCodecsInfo.cpp
-  7ZipDllHandler.cpp
-  7ZipFormatInfo.cpp
-  7ZipObjectPtrArray.cpp
-  7ZipOpenArchive.cpp
-  OSFunctions_UnixLike.cpp
-  OSFunctions_Win32.cpp
-  7ZipInStreamWrapper.cpp
+  ${SOURCE_DIR}/7ZipArchive.cpp
+  ${SOURCE_DIR}/7ZipArchiveItem.cpp
+  ${SOURCE_DIR}/7zipLibrary.cpp
+  ${SOURCE_DIR}/HelperFuncs.cpp
+  ${SOURCE_DIR}/7ZipArchiveOpenCallback.cpp
+  ${SOURCE_DIR}/7ZipCodecInfo.cpp
+  ${SOURCE_DIR}/7ZipCompressCodecsInfo.cpp
+  ${SOURCE_DIR}/7ZipDllHandler.cpp
+  ${SOURCE_DIR}/7ZipFormatInfo.cpp
+  ${SOURCE_DIR}/7ZipObjectPtrArray.cpp
+  ${SOURCE_DIR}/7ZipOpenArchive.cpp
+  ${SOURCE_DIR}/OSFunctions_UnixLike.cpp
+  ${SOURCE_DIR}/OSFunctions_Win32.cpp
+  ${SOURCE_DIR}/7ZipInStreamWrapper.cpp
+
+  ${UPSTREAM_DIR}/CPP/Common/MyWindows.cpp
+  ${UPSTREAM_DIR}/CPP/Windows/PropVariant.cpp
 )
 
 add_library(7zip STATIC ${lib7zip_SOURCES})
