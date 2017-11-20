@@ -15,6 +15,9 @@ This fork includes the following changes:
   * Port from autotools to CMake
   * Add automatic downloading of 7-zip sources with cmake
   * Work around "redefining GUIDs", see [this discussion][mingw-guid] for an actual explanation
+  * Only look for `7z.dll` or `7z.so` in the executable's directory, as opposed to:
+    * a bunch of paths on linux/mac (in /usr, /usr/local, and ".")
+    * all entries of `%PATH%` on windows (which includes ".")
 
 This fork was made for internal purposes, to expose the 7-zip API to
 <https://github.com/itchio/butler>.
