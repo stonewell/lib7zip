@@ -39,6 +39,7 @@ using namespace NWindows;
 
 #include "dirent.h"
 
+#include "SelfPath.h"
 #include "OSFunctions_UnixLike.h"
 
 #if __APPLE__ && (MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_9)
@@ -166,41 +167,19 @@ wstring GetHandlerPath(void * pHandler)
 
 HMODULE Load7ZLibrary(const wstring & name)
 {
-  string tmpName = NarrowString(name + L".so");
+  // Note: for some incredible reason, the name of the library
+  // is `7.so` (sic. - there's no lib prefix) on both Linux and macOS.
+  // Of course it's actually a Mach-O dynamic library on mac, but that's
+  // just what's it named. Don't ask me.
+  auto absolute_library = DirName(SelfPath()) + "/" + NarrowString(name + L".so");
 
-  HMODULE pHandler = dlopen(tmpName.c_str(), RTLD_LAZY | RTLD_GLOBAL);
-
-  if (pHandler)
-    return pHandler;
-
-  size_t pos = tmpName.rfind("/");
-
-  if (pos != string::npos)
-  {
-    tmpName = tmpName.substr(pos + 1);
+  HMODULE pModule = dlopen(absolute_library.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+  if (!pModule) {
+    fprintf(stderr, "Could not find 7-zip library at: %s\n", absolute_library.c_str());
+    fflush(stderr);
   }
 
-  std::vector<const char *> lib_search_pathlist;
-
-  lib_search_pathlist.push_back("/usr/local/lib");
-  lib_search_pathlist.push_back("/usr/lib");
-  lib_search_pathlist.push_back("/usr/lib/p7zip");
-  lib_search_pathlist.push_back("/usr/local/lib/p7zip");
-  lib_search_pathlist.push_back(".");
-
-  for(std::vector<const char *>::iterator lib_search_pathlistIt = lib_search_pathlist.begin(); 
-      lib_search_pathlistIt != lib_search_pathlist.end(); 
-      lib_search_pathlistIt++)
-  {
-    string path_prefix = *lib_search_pathlistIt;
-    path_prefix += "/";
-    path_prefix += tmpName;
-
-    pHandler = dlopen(path_prefix.c_str(), RTLD_LAZY | RTLD_GLOBAL);
-    if ( pHandler != NULL)
-      break;
-  }
-  return pHandler;
+  return pModule;
 }
 
 void Free7ZLibrary(HMODULE pModule)

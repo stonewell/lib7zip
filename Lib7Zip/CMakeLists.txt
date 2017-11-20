@@ -47,6 +47,7 @@ set (lib7zip_SOURCES
   ${SOURCE_DIR}/7ZipArchiveItem.cpp
   ${SOURCE_DIR}/7zipLibrary.cpp
   ${SOURCE_DIR}/HelperFuncs.cpp
+  ${SOURCE_DIR}/SelfPath.cpp
   ${SOURCE_DIR}/7ZipArchiveOpenCallback.cpp
   ${SOURCE_DIR}/7ZipCodecInfo.cpp
   ${SOURCE_DIR}/7ZipCompressCodecsInfo.cpp
