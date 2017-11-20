@@ -127,7 +127,7 @@ public:
 		{
 #ifdef _WIN32
 			std::string tmp = m_strFileName.substr(pos + 1);
-			int nLen = MultiByteToWideChar(CP_ACP, 0, tmp.c_str(), -1, NULL, NULL);
+			int nLen = MultiByteToWideChar(CP_ACP, 0, tmp.c_str(), -1, NULL, 0);
 			LPWSTR lpszW = new WCHAR[nLen];
 			MultiByteToWideChar(CP_ACP, 0, 
 			   tmp.c_str(), -1, lpszW, nLen);
