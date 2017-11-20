@@ -24,6 +24,26 @@ extern bool Create7ZipArchiveItem(C7ZipArchive * pArchive,
 								  unsigned int nIndex,
 								  C7ZipArchiveItem ** ppItem);
 
+class C7ZipSequentialOutStreamWrap:
+	public ISequentialOutStream,
+	public CMyUnknownImp
+{
+public:
+	C7ZipSequentialOutStreamWrap(C7ZipSequentialOutStream * pSequentialOutStream) : m_pSequentialOutStream(pSequentialOutStream) {}
+	virtual ~C7ZipSequentialOutStreamWrap() {}
+
+public:
+	MY_UNKNOWN_IMP1(ISequentialOutStream)
+
+	STDMETHOD(Write)(const void *data, UInt32 size, UInt32 *processedSize)
+	{
+		return m_pSequentialOutStream->Write(data, size, processedSize);
+	}
+
+private:
+	C7ZipSequentialOutStream * m_pSequentialOutStream;
+};
+
 class C7ZipOutStreamWrap:
 	public IOutStream,
 	public CMyUnknownImp
@@ -79,20 +99,29 @@ public:
 	STDMETHOD(CryptoGetTextPassword)(BSTR *aPassword);
 	
 private:
-	C7ZipOutStreamWrap * _outFileStreamSpec;
+	C7ZipSequentialOutStreamWrap * _outFileStreamSpec;
 	CMyComPtr<ISequentialOutStream> _outFileStream;
 
-	C7ZipOutStream * m_pOutStream;
+	C7ZipSequentialOutStream * m_pSequentialOutStream;
 	const C7ZipArchive * m_pArchive;
 	const C7ZipArchiveItem * m_pItem;
 public:
-	CArchiveExtractCallback(C7ZipOutStream * pOutStream,const C7ZipArchive * pArchive,const C7ZipArchiveItem * pItem) : 
-		m_pOutStream(pOutStream),
+	CArchiveExtractCallback(C7ZipSequentialOutStream * pSequentialOutStream,const C7ZipArchive * pArchive,const C7ZipArchiveItem * pItem) : 
+		m_pSequentialOutStream(pSequentialOutStream),
 		m_pArchive(pArchive),
 		m_pItem(pItem)
 	{
 	}
 };
+
+class CCustomArchiveExtractCallback:
+	public IArchiveExtractCallback,
+	public ICryptoGetTextPassword,
+	public CMyUnknownImp
+{
+
+};
+
 
 class C7ZipArchiveImpl : public virtual C7ZipArchive
 {
@@ -103,9 +132,9 @@ public:
 public:
 	virtual bool GetItemCount(unsigned int * pNumItems);
 	virtual bool GetItemInfo(unsigned int index, C7ZipArchiveItem ** ppArchiveItem);
-	virtual bool Extract(unsigned int index, C7ZipOutStream * pOutStream);
-	virtual bool Extract(unsigned int index, C7ZipOutStream * pOutStream, const wstring & pwd);
-	virtual bool Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutStream * pOutStream);
+	virtual bool Extract(unsigned int index, C7ZipSequentialOutStream * pSequentialOutStream);
+	virtual bool Extract(unsigned int index, C7ZipSequentialOutStream * pSequentialOutStream, const wstring & pwd);
+	virtual bool Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipSequentialOutStream * pSequentialOutStream);
 
 	virtual void Close();
 
@@ -160,33 +189,33 @@ bool C7ZipArchiveImpl::GetItemInfo(unsigned int index, C7ZipArchiveItem ** ppArc
 	return false;
 }
 
-bool C7ZipArchiveImpl::Extract(unsigned int index, C7ZipOutStream * pOutStream)
+bool C7ZipArchiveImpl::Extract(unsigned int index, C7ZipSequentialOutStream * pSequentialOutStream)
 {
 	if (index < m_ArchiveItems.size())
 	{
-		return Extract(dynamic_cast<const C7ZipArchiveItem *>(m_ArchiveItems[(int)index]), pOutStream);
+		return Extract(dynamic_cast<const C7ZipArchiveItem *>(m_ArchiveItems[(int)index]), pSequentialOutStream);
 	}
 
 	return false;
 }
 
-bool C7ZipArchiveImpl::Extract(unsigned int index, C7ZipOutStream * pOutStream, const wstring & pwd)
+bool C7ZipArchiveImpl::Extract(unsigned int index, C7ZipSequentialOutStream * pSequentialOutStream, const wstring & pwd)
 {
 	if (index < m_ArchiveItems.size())
 	{
 		C7ZipArchiveItem * pItem = dynamic_cast<C7ZipArchiveItem *>(m_ArchiveItems[(int)index]);
 		pItem->SetArchiveItemPassword(pwd);
 
-		return Extract(pItem, pOutStream);
+		return Extract(pItem, pSequentialOutStream);
 	}
 
 	return false;
 }
 
-bool C7ZipArchiveImpl::Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutStream * pOutStream)
+bool C7ZipArchiveImpl::Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipSequentialOutStream * pSequentialOutStream)
 {
 	CArchiveExtractCallback *extractCallbackSpec = 
-		new CArchiveExtractCallback(pOutStream, this, pArchiveItem);
+		new CArchiveExtractCallback(pSequentialOutStream, this, pArchiveItem);
 	CMyComPtr<IArchiveExtractCallback> extractCallback(extractCallbackSpec);
 
 	UInt32 nArchiveIndex = pArchiveItem->GetArchiveIndex();
@@ -267,7 +296,7 @@ STDMETHODIMP CArchiveExtractCallback::GetStream(UInt32 index,
 		return S_OK;
 
 
-	_outFileStreamSpec = new C7ZipOutStreamWrap(m_pOutStream);
+	_outFileStreamSpec = new C7ZipSequentialOutStreamWrap(m_pSequentialOutStream);
 	CMyComPtr<ISequentialOutStream> outStreamLoc(_outFileStreamSpec);
 
 	_outFileStream = outStreamLoc;

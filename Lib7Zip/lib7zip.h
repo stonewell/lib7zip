@@ -139,12 +139,29 @@ public:
 	virtual C7ZipInStream * OpenCurrentVolumeStream() = 0;
 };
 
-class C7ZipOutStream
+class C7ZipSequentialOutStream
+{
+	public: 
+	virtual int Write(const void *data, unsigned int size, unsigned int *processedSize) = 0;
+};
+
+class C7ZipOutStream : public virtual C7ZipSequentialOutStream
 {
 public:
-	virtual int Write(const void *data, unsigned int size, unsigned int *processedSize) = 0;
 	virtual int Seek(__int64 offset, unsigned int seekOrigin, unsigned __int64 *newPosition) = 0;
 	virtual int SetSize(unsigned __int64 size) = 0;
+};
+
+class C7ZipExtractCallback
+{
+public:
+	// IProgress
+  virtual void SetTotal(unsigned __int64 size);
+  virtual void SetCompleted(const unsigned __int64 *completeValue);
+
+	// IArchiveExtractCallback
+	virtual C7ZipOutStream *GetStream(int index);
+	virtual void SetOperationResult(int operationResult);
 };
 
 class C7ZipArchive : public virtual C7ZipObject
@@ -156,9 +173,9 @@ public:
 public:
 	virtual bool GetItemCount(unsigned int * pNumItems) = 0;
 	virtual bool GetItemInfo(unsigned int index, C7ZipArchiveItem ** ppArchiveItem) = 0;
-	virtual bool Extract(unsigned int index, C7ZipOutStream * pOutStream) = 0;
-	virtual bool Extract(unsigned int index, C7ZipOutStream * pOutStream, const wstring & pwd) = 0;
-	virtual bool Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutStream * pOutStream) = 0;
+	virtual bool Extract(unsigned int index, C7ZipSequentialOutStream * pSequentialOutStream) = 0;
+	virtual bool Extract(unsigned int index, C7ZipSequentialOutStream * pSequentialOutStream, const wstring & pwd) = 0;
+	virtual bool Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipSequentialOutStream * pSequentialOutStream) = 0;
 	virtual wstring GetArchivePassword() const  = 0;
 	virtual void SetArchivePassword(const wstring & password) = 0;
 	virtual bool IsPasswordSet() const = 0;
