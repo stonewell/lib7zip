@@ -39,18 +39,6 @@ set(test7ziprar5_SOURCES
   ${SRC}/Test7ZipRar5.cpp
 )
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-# nothing to do
-message(STATUS "Not adding include_windows")
-else()
-message(STATUS "Adding include_windows")
-include_directories(
-  # contains a stub "windows.h" among other things
-  ${UPSTREAM_INCLUDE_DIR}/CPP/include_windows
-  ${UPSTREAM_INCLUDE_DIR}/CPP/myWindows
-)
-endif()
-
 add_executable(test7zip ${test7zip_SOURCES})
 target_link_libraries(test7zip 7zip)
 
