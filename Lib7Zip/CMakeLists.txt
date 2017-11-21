@@ -46,4 +46,5 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   target_compile_options(7zip PRIVATE -DUNICODE -D_UNICODE)
 else()
   target_link_libraries(7zip -ldl)
+  target_compile_options(7zip PRIVATE -fPIC)
 endif() # Windows
