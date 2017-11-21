@@ -370,7 +370,6 @@ STDMETHODIMP CCustomArchiveExtractCallback::SetOperationResult(Int32 operationRe
 	}
 
 	_outFileStream.Release();
-	delete m_pSequentialOutStream;
 	m_pSequentialOutStream = NULL;
 
 	m_pCallback->SetOperationResult(operationResult);
