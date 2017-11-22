@@ -1,15 +1,6 @@
 #ifndef __LIB_7ZIP_H__
 #define __LIB_7ZIP_H__
 
-#define LIB_7ZIP_VER_MAJOR 2
-#define LIB_7ZIP_VER_MINOR 0
-#define LIB_7ZIP_VER_BUILD 0
-#define LIB_7ZIP_VERSION "2.0"
-#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 2.0"
-#define LIB_7ZIP_DATE "2015-11"
-#define LIB_7ZIP_COPYRIGHT "Copyright (c) 2009-2015"
-#define LIB_7ZIP_VERSION_COPYRIGHT_DATE MY_VERSION "  " MY_COPYRIGHT "  " MY_DATE
-
 #include <string>
 #include <vector>
 

@@ -42,7 +42,7 @@ add_library(7zip STATIC ${lib7zip_SOURCES})
 target_compile_options(7zip PRIVATE -std=c++11)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  target_link_libraries(7zip -lole32 -loleaut32 -luuid)
+  target_link_libraries(7zip ole32 oleaut32 uuid)
   target_compile_options(7zip PRIVATE -DUNICODE -D_UNICODE)
 else()
   target_link_libraries(7zip -ldl)
