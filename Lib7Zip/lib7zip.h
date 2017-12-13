@@ -68,6 +68,8 @@ namespace lib7zip {
 		kpidPath, //(FullPath)
 		kpidIsDir, //(IsDir)
 		kpidSize, //(Uncompressed Size)
+		kpidSymLink, //(Symbolic link destination)
+		kpidPosixAttrib, //(POSIX Attributes)
 
 		PROP_INDEX_END
 	};
