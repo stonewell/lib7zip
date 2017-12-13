@@ -166,9 +166,6 @@ bool C7ZipArchiveItemImpl::GetUInt64Property(lib7zip::PropertyIndexEnum property
 	case lib7zip::kpidClusterSize: //(Cluster Size)
 		p7zip_index = kpidClusterSize;
 		break;
-	case lib7zip::kpidSymLink: //(Symbolic link destination)
-		p7zip_index = kpidSymLink;
-		break;
 	case lib7zip::kpidPosixAttrib: //(POSIX Attributes)
 		p7zip_index = kpidPosixAttrib;
 		break;
@@ -244,6 +241,9 @@ bool C7ZipArchiveItemImpl::GetStringProperty(lib7zip::PropertyIndexEnum property
 		break;
 	case lib7zip::kpidGroup: //(Group)
 		p7zip_index = kpidGroup;
+		break;
+	case lib7zip::kpidSymLink: //(Symbolic link destination)
+		p7zip_index = kpidSymLink;
 		break;
 	default:
 		return false;
