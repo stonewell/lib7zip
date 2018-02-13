@@ -253,10 +253,11 @@ int main(int argc, char * argv[])
 	TestOutStream oStream("TestResult.txt");
 	if (lib.OpenArchive(&stream, &pArchive)) {
 		unsigned int numItems = 0;
-
 		pArchive->GetItemCount(&numItems);
+		wprintf(L"%d items\n", numItems);
 
-		wprintf(L"%d\n", numItems);
+		auto format = pArchive->GetArchiveFormat();
+		wprintf(L"'%ls' format\n", format.c_str());
 
 		for(unsigned int i = 0;i < numItems;i++) {
 			C7ZipArchiveItem * pArchiveItem = NULL;

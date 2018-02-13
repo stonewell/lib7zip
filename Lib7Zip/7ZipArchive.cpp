@@ -151,7 +151,7 @@ public:
 class C7ZipArchiveImpl : public virtual C7ZipArchive
 {
 public:
-	C7ZipArchiveImpl(C7ZipLibrary * pLibrary, IInArchive * pInArchive);
+	C7ZipArchiveImpl(C7ZipLibrary * pLibrary, IInArchive * pInArchive, const wstring &formatName);
 	virtual ~C7ZipArchiveImpl();
 
 public:
@@ -168,6 +168,7 @@ public:
 
 	virtual wstring GetArchivePassword() const;
 	virtual void SetArchivePassword(const wstring & password);
+	virtual wstring GetArchiveFormat() const;
 	virtual bool IsPasswordSet() const;
 
 	virtual bool GetUInt64Property(lib7zip::PropertyIndexEnum propertyIndex,
@@ -183,11 +184,13 @@ private:
 	CMyComPtr<IInArchive> m_pInArchive;
 	C7ZipObjectPtrArray m_ArchiveItems;
 	wstring m_Password;
+	wstring m_Format;
 };
 
-C7ZipArchiveImpl::C7ZipArchiveImpl(C7ZipLibrary * pLibrary, IInArchive * pInArchive) :
+C7ZipArchiveImpl::C7ZipArchiveImpl(C7ZipLibrary * pLibrary, IInArchive * pInArchive, const wstring &formatName) :
 m_pLibrary(pLibrary),
-m_pInArchive(pInArchive)
+m_pInArchive(pInArchive),
+m_Format(formatName)
 {
 }
 
@@ -285,6 +288,11 @@ wstring C7ZipArchiveImpl::GetArchivePassword() const
 	return m_Password;
 }
 
+wstring C7ZipArchiveImpl::GetArchiveFormat() const
+{
+	return m_Format;
+}
+
 void C7ZipArchiveImpl::SetArchivePassword(const wstring & password)
 {
 	m_Password = password;
@@ -295,9 +303,9 @@ bool C7ZipArchiveImpl::IsPasswordSet() const
 	return !(m_Password == L"");
 }
 
-bool Create7ZipArchive(C7ZipLibrary * pLibrary, IInArchive * pInArchive, C7ZipArchive ** ppArchive)
+bool Create7ZipArchive(C7ZipLibrary * pLibrary, IInArchive * pInArchive, C7ZipArchive ** ppArchive, const wstring &formatName)
 {
-	C7ZipArchiveImpl * pArchive = new C7ZipArchiveImpl(pLibrary, pInArchive);
+	C7ZipArchiveImpl * pArchive = new C7ZipArchiveImpl(pLibrary, pInArchive, formatName);
 
 	if (pArchive->Initialize())
 	{
