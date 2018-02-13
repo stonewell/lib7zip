@@ -108,7 +108,6 @@ static int CreateInArchive(pU7ZipFunctions pFunctions,
 
 #if MY_VER_MAJOR >= 15
       for(unsigned i = 0; i < pInfo->Signatures.Size(); i++) {
-					wprintf(L"Checking signature %d\n", i);
           CByteBuffer signature(pInfo->Signatures[i].Size());
           
           if (!ReadStream(inStream, pInfo->SignatureOffset, FILE_BEGIN, signature))
