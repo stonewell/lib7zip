@@ -10,7 +10,7 @@ set(UPSTREAM_DIR ${CMAKE_BINARY_DIR}/upstream-7zip-src)
 set(UPSTREAM_INCLUDE_DIR ${UPSTREAM_DIR})
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-set(UPSTREAM_SRC_URL http://www.7-zip.org/a/7z1604-src.7z)
+set(UPSTREAM_SRC_URL http://www.7-zip.org/a/7z1805-src.7z)
 set(UPSTREAM_PATCH_CMD dos2unix ${PATCH_DIR}/001_avoid_duplicate_guids.patch COMMAND patch --ignore-whitespace --strip 1 < ${PATCH_DIR}/001_avoid_duplicate_guids.patch COMMAND unix2dos ${UPSTREAM_DIR}/CPP/Windows/FileIO.h)
 else() # Windows
 set(UPSTREAM_SRC_URL https://downloads.sourceforge.net/project/p7zip/p7zip/16.02/p7zip_16.02_src_all.tar.bz2)

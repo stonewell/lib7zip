@@ -9,6 +9,8 @@
 #include "CPP/include_windows/windows.h"
 #endif
 
+#include "CPP/Common/Common.h"
+
 #include "C/7zVersion.h"
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/Windows/PropVariant.h"
