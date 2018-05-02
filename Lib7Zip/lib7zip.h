@@ -178,6 +178,7 @@ public:
 	virtual bool ExtractSeveral(unsigned int *indexList, int numIndices, C7ZipExtractCallback *extractCallback) = 0;
 	virtual wstring GetArchivePassword() const  = 0;
 	virtual void SetArchivePassword(const wstring & password) = 0;
+	virtual wstring GetArchiveFormat() const = 0;
 	virtual bool IsPasswordSet() const = 0;
 	
 	virtual void Close() = 0;
