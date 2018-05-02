@@ -60,6 +60,11 @@ C7ZipLibrary::~C7ZipLibrary()
     Deinitialize();
 }
 
+const char *C7ZipLibrary::GetVersion()
+{
+    return MY_VERSION;
+}
+
 void C7ZipLibrary::Deinitialize()
 {
     if (!m_bInitialized)

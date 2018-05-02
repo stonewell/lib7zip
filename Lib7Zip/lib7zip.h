@@ -206,6 +206,7 @@ private:
 	C7ZipObjectPtrArray m_InternalObjectsArray;
 
 public:
+	const char *GetVersion();
 	bool Initialize();
 	void Deinitialize();
 
@@ -228,9 +229,9 @@ public:
 
 	lib7zip::ErrorCodeEnum GetLastError() const { return m_LastError; }
 
-    const C7ZipObjectPtrArray & GetInternalObjectsArray() { return m_InternalObjectsArray; }
+  const C7ZipObjectPtrArray & GetInternalObjectsArray() { return m_InternalObjectsArray; }
 
-    bool IsInitialized() const { return m_bInitialized; }
+  bool IsInitialized() const { return m_bInitialized; }
 };
 
 //set locale used by lib7zip, if NULL or not set, lib7zip will use user default locale
