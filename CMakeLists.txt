@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
+include(ExternalProject)
 
 project(lib7zip)
 
@@ -6,22 +7,33 @@ option(LIB7ZIP_BUILD_TESTS "Build tests for lib7zip" OFF)
 
 set(PATCH_DIR ${CMAKE_CURRENT_SOURCE_DIR}/patches)
 
-set(UPSTREAM_DIR ${CMAKE_BINARY_DIR}/upstream-7zip-src)
-set(UPSTREAM_INCLUDE_DIR ${UPSTREAM_DIR})
+set(UPSTREAM_DIR_NAME "lzma-sdk")
 
+set(UPSTREAM_DIR ${CMAKE_BINARY_DIR}/${UPSTREAM_DIR_NAME})
+set(UPSTREAM_INCLUDE_DIR ${UPSTREAM_DIR})
+get_filename_component(UPSTREAM_DIR ${UPSTREAM_DIR} ABSOLUTE)
+
+set(UPSTREAM_SRC_URL https://www.7-zip.org/a/lzma1805.7z)
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-set(UPSTREAM_SRC_URL http://www.7-zip.org/a/7z1805-src.7z)
-set(UPSTREAM_PATCH_CMD dos2unix ${PATCH_DIR}/001_avoid_duplicate_guids.patch COMMAND patch --ignore-whitespace --strip 1 < ${PATCH_DIR}/001_avoid_duplicate_guids.patch COMMAND unix2dos ${UPSTREAM_DIR}/CPP/Windows/FileIO.h)
+    set(PATCH_PATH "${PATCH_DIR}/001_avoid_duplicate_guids.patch")
+    #set(UPSTREAM_PATCH_CMD "git apply --verbose --no-index ${PATCH_PATH}")
+    #overcoming bug in CMake
+    set(PATCH_SCRIPT "${CMAKE_BINARY_DIR}/patchProto.cmd")
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/patchProto.cmd.in" "${PATCH_SCRIPT}")
+    set(UPSTREAM_PATCH_CMD "${PATCH_SCRIPT}")
 else() # Windows
-set(UPSTREAM_SRC_URL https://downloads.sourceforge.net/project/p7zip/p7zip/16.02/p7zip_16.02_src_all.tar.bz2)
-set(UPSTREAM_PATCH_CMD )
+    set(UPSTREAM_PATCH_CMD )
 endif() # not Windows
 
-include(DownloadProject.cmake)
-download_project(
-  PROJ upstream-7zip
-  URL ${UPSTREAM_SRC_URL}
-  PATCH_COMMAND ${UPSTREAM_PATCH_CMD}
+ExternalProject_Add(
+	upstream-7zip
+	URL ${UPSTREAM_SRC_URL}
+	SOURCE_DIR ${UPSTREAM_DIR}
+	PATCH_COMMAND ${UPSTREAM_PATCH_CMD}
+    UPDATE_COMMAND ""
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ""
 )
 
 add_subdirectory(Lib7Zip)

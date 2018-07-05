@@ -1,6 +1,6 @@
-diff -Naur upstream-7zip/CPP/Windows/FileIO.h upstream-7zip-patched/CPP/Windows/FileIO.h
---- upstream-7zip/CPP/Windows/FileIO.h	2015-08-02 13:42:34.000000000 +0200
-+++ upstream-7zip-patched/CPP/Windows/FileIO.h	2017-11-20 11:21:37.699451700 +0100
+diff -Naur a/CPP/Windows/FileIO.h b/CPP/Windows/FileIO.h
+--- a/CPP/Windows/FileIO.h	2015-08-02 13:42:34.000000000 +0200
++++ b/CPP/Windows/FileIO.h	2017-11-20 11:21:37.699451700 +0100
 @@ -6,7 +6,7 @@
  #include "../Common/MyWindows.h"
  

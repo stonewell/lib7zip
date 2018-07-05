@@ -1,0 +1,2 @@
+cd /d I:\Nick\fuse-7z-ng\lib7zip_build\build\lzma-sdk
+git apply --verbose --no-index "@PATCH_PATH@"

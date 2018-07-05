@@ -11,6 +11,7 @@
 #endif
 
 #include "C/7zVersion.h"
+#include "CPP/Common/Common.h"
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/Windows/PropVariant.h"
 #include "CPP/Common/MyCom.h"
