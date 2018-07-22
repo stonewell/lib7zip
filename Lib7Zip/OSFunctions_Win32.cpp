@@ -6,6 +6,7 @@
 #endif
 
 #include "C/7zVersion.h"
+#include "CPP/Common/Common.h"
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/Windows/PropVariant.h"
 #include "CPP/Common/MyCom.h"
@@ -16,6 +17,7 @@
 using namespace NWindows;
 
 #include "HelperFuncs.h"
+#include "SelfPath.h"
 #include "7ZipFunctions.h"
 #include "7ZipDllHandler.h"
 
@@ -94,7 +96,14 @@ wstring GetHandlerPath(void * pHandler)
 
 HMODULE Load7ZLibrary(const wstring & library)
 {
-	return LoadLibrary(library.c_str());
+    auto absolute_library = DirName(SelfPath()) + kSeparator + NarrowString(library) + ".dll";
+    auto wabsolute_library = WidenString(absolute_library);
+	HMODULE pModule = LoadLibrary(wabsolute_library.c_str());
+    if (!pModule) {
+        fprintf(stderr, "Could not find 7-zip library at: %s\n", absolute_library.c_str());
+        fflush(stderr);
+    }
+    return pModule;
 }
 
 void Free7ZLibrary(HMODULE pModule)

@@ -1,15 +1,6 @@
 #ifndef __LIB_7ZIP_H__
 #define __LIB_7ZIP_H__
 
-#define LIB_7ZIP_VER_MAJOR 2
-#define LIB_7ZIP_VER_MINOR 0
-#define LIB_7ZIP_VER_BUILD 0
-#define LIB_7ZIP_VERSION "2.0"
-#define LIB_7ZIP_7ZIP_VERSION "lib7Zip 2.0"
-#define LIB_7ZIP_DATE "2015-11"
-#define LIB_7ZIP_COPYRIGHT "Copyright (c) 2009-2015"
-#define LIB_7ZIP_VERSION_COPYRIGHT_DATE MY_VERSION "  " MY_COPYRIGHT "  " MY_DATE
-
 #include <string>
 #include <vector>
 
@@ -77,6 +68,8 @@ namespace lib7zip {
 		kpidPath, //(FullPath)
 		kpidIsDir, //(IsDir)
 		kpidSize, //(Uncompressed Size)
+		kpidSymLink, //(Symbolic link destination)
+		kpidPosixAttrib, //(POSIX Attributes)
 
 		PROP_INDEX_END
 	};
@@ -139,12 +132,35 @@ public:
 	virtual C7ZipInStream * OpenCurrentVolumeStream() = 0;
 };
 
-class C7ZipOutStream
+class C7ZipSequentialOutStream
+{
+	public: 
+	virtual int Write(const void *data, unsigned int size, unsigned int *processedSize) = 0;
+	virtual ~C7ZipSequentialOutStream() {
+		// muffin
+	}
+};
+
+class C7ZipOutStream : public virtual C7ZipSequentialOutStream
 {
 public:
-	virtual int Write(const void *data, unsigned int size, unsigned int *processedSize) = 0;
 	virtual int Seek(__int64 offset, unsigned int seekOrigin, unsigned __int64 *newPosition) = 0;
 	virtual int SetSize(unsigned __int64 size) = 0;
+	virtual ~C7ZipOutStream() {
+		// muffin
+	}
+};
+
+class C7ZipExtractCallback
+{
+public:
+	// IProgress
+  virtual void SetTotal(unsigned __int64 size) = 0;
+  virtual void SetCompleted(const unsigned __int64 *completeValue) = 0;
+
+	// IArchiveExtractCallback
+	virtual C7ZipSequentialOutStream *GetStream(int index) = 0;
+	virtual void SetOperationResult(int operationResult) = 0;
 };
 
 class C7ZipArchive : public virtual C7ZipObject
@@ -156,11 +172,13 @@ public:
 public:
 	virtual bool GetItemCount(unsigned int * pNumItems) = 0;
 	virtual bool GetItemInfo(unsigned int index, C7ZipArchiveItem ** ppArchiveItem) = 0;
-	virtual bool Extract(unsigned int index, C7ZipOutStream * pOutStream) = 0;
-	virtual bool Extract(unsigned int index, C7ZipOutStream * pOutStream, const wstring & pwd) = 0;
-	virtual bool Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutStream * pOutStream) = 0;
+	virtual bool Extract(unsigned int index, C7ZipSequentialOutStream * pSequentialOutStream) = 0;
+	virtual bool Extract(unsigned int index, C7ZipSequentialOutStream * pSequentialOutStream, const wstring & pwd) = 0;
+	virtual bool Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipSequentialOutStream * pSequentialOutStream) = 0;
+	virtual bool ExtractSeveral(unsigned int *indexList, int numIndices, C7ZipExtractCallback *extractCallback) = 0;
 	virtual wstring GetArchivePassword() const  = 0;
 	virtual void SetArchivePassword(const wstring & password) = 0;
+	virtual wstring GetArchiveFormat() const = 0;
 	virtual bool IsPasswordSet() const = 0;
 	
 	virtual void Close() = 0;
@@ -188,6 +206,7 @@ private:
 	C7ZipObjectPtrArray m_InternalObjectsArray;
 
 public:
+	const char *GetVersion();
 	bool Initialize();
 	void Deinitialize();
 
@@ -210,9 +229,9 @@ public:
 
 	lib7zip::ErrorCodeEnum GetLastError() const { return m_LastError; }
 
-    const C7ZipObjectPtrArray & GetInternalObjectsArray() { return m_InternalObjectsArray; }
+  const C7ZipObjectPtrArray & GetInternalObjectsArray() { return m_InternalObjectsArray; }
 
-    bool IsInitialized() const { return m_bInitialized; }
+  bool IsInitialized() const { return m_bInitialized; }
 };
 
 //set locale used by lib7zip, if NULL or not set, lib7zip will use user default locale

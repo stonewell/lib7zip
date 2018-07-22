@@ -30,7 +30,7 @@ public:
 			if (pos != m_strFileName.npos) {
 #ifdef _WIN32
 				std::string tmp = m_strFileName.substr(pos + 1);
-				int nLen = MultiByteToWideChar(CP_ACP, 0, tmp.c_str(), -1, NULL, NULL);
+				int nLen = MultiByteToWideChar(CP_ACP, 0, tmp.c_str(), -1, NULL, 0);
 				LPWSTR lpszW = new WCHAR[nLen];
 				MultiByteToWideChar(CP_ACP, 0, 
 									tmp.c_str(), -1, lpszW, nLen);
@@ -50,7 +50,10 @@ public:
 
 	virtual ~TestInStream()
 	{
-		fclose(m_pFile);
+		if (m_pFile) {
+			fclose(m_pFile);
+			m_pFile = NULL;
+		}
 	}
 
 public:
@@ -124,7 +127,7 @@ public:
 		{
 #ifdef _WIN32
 			std::string tmp = m_strFileName.substr(pos + 1);
-			int nLen = MultiByteToWideChar(CP_ACP, 0, tmp.c_str(), -1, NULL, NULL);
+			int nLen = MultiByteToWideChar(CP_ACP, 0, tmp.c_str(), -1, NULL, 0);
 			LPWSTR lpszW = new WCHAR[nLen];
 			MultiByteToWideChar(CP_ACP, 0, 
 			   tmp.c_str(), -1, lpszW, nLen);
@@ -250,10 +253,11 @@ int main(int argc, char * argv[])
 	TestOutStream oStream("TestResult.txt");
 	if (lib.OpenArchive(&stream, &pArchive)) {
 		unsigned int numItems = 0;
-
 		pArchive->GetItemCount(&numItems);
+		wprintf(L"%d items\n", numItems);
 
-		wprintf(L"%d\n", numItems);
+		auto format = pArchive->GetArchiveFormat();
+		wprintf(L"'%ls' format\n", format.c_str());
 
 		for(unsigned int i = 0;i < numItems;i++) {
 			C7ZipArchiveItem * pArchiveItem = NULL;

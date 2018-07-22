@@ -10,6 +10,7 @@
 #endif
 
 #include "C/7zVersion.h"
+#include "CPP/Common/Common.h"
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/Windows/PropVariant.h"
 #include "CPP/Common/MyCom.h"
@@ -58,6 +59,11 @@ m_bInitialized(false)
 C7ZipLibrary::~C7ZipLibrary()
 {
     Deinitialize();
+}
+
+const char *C7ZipLibrary::GetVersion()
+{
+    return MY_VERSION;
 }
 
 void C7ZipLibrary::Deinitialize()

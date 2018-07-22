@@ -1,9 +1,10 @@
-// Test7Zip.cpp : Defines the entry point for the console application.
+// Test7ZipCallback.cpp : Defines the entry point for the console application.
 //
 
 #include "stdafx.h"
 #include "../Lib7Zip/lib7zip.h"
 #include <iostream>
+#include <sstream>
 
 class TestInStream : public C7ZipInStream
 {
@@ -106,7 +107,7 @@ public:
 	}
 };
 
-class TestOutStream : public C7ZipOutStream
+class TestSequentialOutStream : public C7ZipSequentialOutStream
 {
 private:
 	FILE * m_pFile;
@@ -114,10 +115,12 @@ private:
 	wstring m_strFileExt;
 	int m_nFileSize;
 public:
-	TestOutStream(std::string fileName) :
+	TestSequentialOutStream(std::string fileName) :
 	  m_strFileName(fileName),
-	  m_strFileExt(L"rar")
+	  m_strFileExt(L"7z")
 	{
+		printf("Writing to %s\n", fileName.c_str());
+
 		m_pFile = fopen(fileName.c_str(), "wb");
 		m_nFileSize = 0;
 
@@ -135,23 +138,19 @@ public:
 			// free the string
 			delete[] lpszW;
 #else
-			m_strFileExt = L"rar";
+			m_strFileExt = L"7z";
 #endif
 		}
 		wprintf(L"Ext:%ls\n", m_strFileExt.c_str());
 	}
 
-	virtual ~TestOutStream()
+	virtual ~TestSequentialOutStream()
 	{
+		printf("Closing %s\n", m_strFileName.c_str());
 		fclose(m_pFile);
 	}
 
 public:
-	int GetFileSize() const 
-	{
-		return m_nFileSize;
-	}
-
 	virtual int Write(const void *data, unsigned int size, unsigned int *processedSize)
 	{
 		int count = fwrite(data, 1, size, m_pFile);
@@ -168,51 +167,34 @@ public:
 
 		return 1;
 	}
-
-	virtual int Seek(__int64 offset, unsigned int seekOrigin, unsigned __int64 *newPosition)
-	{
-		int result = fseek(m_pFile, (long)offset, seekOrigin);
-
-		if (!result)
-		{
-			if (newPosition)
-				*newPosition = ftell(m_pFile);
-
-			return 0;
-		}
-
-		return result;
-	}
-
-	virtual int SetSize(unsigned __int64 size)
-	{
-		wprintf(L"SetFileSize:%ld\n", size);
-		return 0;
-	}
 };
 
-const wchar_t * index_names[] = {
-		L"kpidPackSize", //(Packed Size)
-		L"kpidAttrib", //(Attributes)
-		L"kpidCTime", //(Created)
-		L"kpidATime", //(Accessed)
-		L"kpidMTime", //(Modified)
-		L"kpidSolid", //(Solid)
-		L"kpidEncrypted", //(Encrypted)
-		L"kpidUser", //(User)
-		L"kpidGroup", //(Group)
-		L"kpidComment", //(Comment)
-		L"kpidPhySize", //(Physical Size)
-		L"kpidHeadersSize", //(Headers Size)
-		L"kpidChecksum", //(Checksum)
-		L"kpidCharacts", //(Characteristics)
-		L"kpidCreatorApp", //(Creator Application)
-		L"kpidTotalSize", //(Total Size)
-		L"kpidFreeSpace", //(Free Space)
-		L"kpidClusterSize", //(Cluster Size)
-		L"kpidVolumeName", //(Label)
-		L"kpidPath", //(FullPath)
-		L"kpidIsDir", //(IsDir)
+class TestExtractCallback : public C7ZipExtractCallback
+{
+public:
+	TestExtractCallback() {
+		// muffin
+	}
+
+	// IProgress
+  void SetTotal(unsigned __int64 size) {
+		wprintf(L"SetTotal(%llu)\n", size);
+	}
+  void SetCompleted(const unsigned __int64 *completeValue) {
+		wprintf(L"SetCompleted(%llu)\n", completeValue ? *completeValue : 0);
+	}
+
+	// IArchiveExtractCallback
+	C7ZipSequentialOutStream *GetStream(int index) {
+		std::ostringstream os;
+		os << "item-" << index << ".dat";
+		auto stream = new TestSequentialOutStream(os.str());
+		return stream;
+	}
+
+	void SetOperationResult(int operationResult) {
+		wprintf(L"SetOperationResult(%d)\n", operationResult);
+	}
 };
 
 #ifdef _WIN32
@@ -228,92 +210,37 @@ int main(int argc, char * argv[])
 		return 1;
 	}
 
-	WStringArray exts;
-
-	if (!lib.GetSupportedExts(exts)) {
-		wprintf(L"get supported exts fail\n");
-		return 1;
-	}
-
-	size_t size = exts.size();
-
-	for(size_t i = 0; i < size; i++) {
-		wstring ext = exts[i];
-
-		for(size_t j = 0; j < ext.size(); j++) {
-			wprintf(L"%c", (char)(ext[j] &0xFF));
-		}
-
-		wprintf(L"\n");
-	}
-
 	C7ZipArchive * pArchive = NULL;
 
 	TestInStream stream("TestRar5.rar");
-	TestOutStream oStream("TestResult.txt");
 	if (lib.OpenArchive(&stream, &pArchive, true)) {
 		unsigned int numItems = 0;
 
 		pArchive->GetItemCount(&numItems);
 
-		wprintf(L"%d\n", numItems);
+		wprintf(L"Listing %d items: \n", numItems);
+		wprintf(L"=======================\n");
 
-		for(unsigned int i = 0;i < numItems;i++) {
-			C7ZipArchiveItem * pArchiveItem = NULL;
+		// auto testOut = TestSequentialOutStream("CallbackResult.txt");
+		// unsigned int singleIndex = 0;
+		// if (!pArchive->Extract(singleIndex, &testOut)) {
+		// 	wprintf(L"extracting single from Test7Zip.7z failed :(\n");
+		// }
 
-			if (pArchive->GetItemInfo(i, &pArchiveItem)) {
-				wprintf(L"%d,%ls,%d\n", pArchiveItem->GetArchiveIndex(),
-						pArchiveItem->GetFullPath().c_str(),
-						pArchiveItem->IsDir());
+		auto indices = new unsigned int[numItems];
+		for (unsigned int i = 0; i < numItems; i++) {
+			indices[i] = i;
+		}
+		unsigned int numIndices = numItems;
 
-				wprintf(L"get all properties\n");
-				for(lib7zip::PropertyIndexEnum index = lib7zip::kpidPackSize;
-					index <= lib7zip::kpidIsDir;
-					index = (lib7zip::PropertyIndexEnum)(index + 1)) {
-					wstring strVal = L"";
-					unsigned __int64 val = 0;
-					bool bVal = false;
-
-					bool result = pArchiveItem->GetUInt64Property(index, val);
-
-					wprintf(L"\n\nGetProperty:%d %ls\n", (int)index, 
-							index_names[(int)index]);
-
-					wprintf(L"UInt64 result:%ls val=%ld\n", 
-							result ? L"true" : L"false",
-							val);
-
-					result = pArchiveItem->GetBoolProperty(index, bVal);
-
-					wprintf(L"Bool result:%ls val=%ls\n", 
-							result ? L"true" : L"false",
-							bVal ? L"true" : L"false");
-
-					result = pArchiveItem->GetStringProperty(index, strVal);
-
-					wprintf(L"String result:%ls val=%ls\n", 
-							result ? L"true" : L"false",
-							strVal.c_str());				
-
-					result = pArchiveItem->GetFileTimeProperty(index, val);
-
-					wprintf(L"FileTime result:%ls val=%ld\n", 
-							result ? L"true" : L"false",
-							val);				
-				}
-
-				//set archive password or item password
-				pArchive->SetArchivePassword(L"test");
-				if (i==0) {
-					//Or set password for each archive item
-					//pArchiveItem->SetArchiveItemPassword(L"test");
-					pArchive->Extract(pArchiveItem, &oStream);
-				}
-			} //if
-		}//for
-	}
-	else {
-		wprintf(L"open archive Test7Rar5.rar fail\n");
+		auto pCallback = new TestExtractCallback();
+		auto extractSuccess = pArchive->ExtractSeveral(indices, numIndices, pCallback);
+		delete[] indices;
+		if (!extractSuccess) {
+			wprintf(L"extracting several from Test7Zip.7z failed :(\n");
+		}
+	} else {
+		wprintf(L"open archive TestRar5.rar fail\n");
 	}
 
 	if (pArchive != NULL)

@@ -10,6 +10,7 @@
 #endif
 
 #include "C/7zVersion.h"
+#include "CPP/Common/Common.h"
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/Windows/PropVariant.h"
 #include "CPP/Common/MyCom.h"
@@ -166,6 +167,9 @@ bool C7ZipArchiveItemImpl::GetUInt64Property(lib7zip::PropertyIndexEnum property
 	case lib7zip::kpidClusterSize: //(Cluster Size)
 		p7zip_index = kpidClusterSize;
 		break;
+	case lib7zip::kpidPosixAttrib: //(POSIX Attributes)
+		p7zip_index = kpidPosixAttrib;
+		break;
 	default:
 		return false;
 	}
@@ -238,6 +242,9 @@ bool C7ZipArchiveItemImpl::GetStringProperty(lib7zip::PropertyIndexEnum property
 		break;
 	case lib7zip::kpidGroup: //(Group)
 		p7zip_index = kpidGroup;
+		break;
+	case lib7zip::kpidSymLink: //(Symbolic link destination)
+		p7zip_index = kpidSymLink;
 		break;
 	default:
 		return false;

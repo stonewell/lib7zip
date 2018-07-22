@@ -10,6 +10,7 @@
 #endif
 
 #include "C/7zVersion.h"
+#include "CPP/Common/Common.h"
 #include "CPP/7zip/Archive/IArchive.h"
 #include "CPP/Windows/PropVariant.h"
 #include "CPP/Common/MyCom.h"
@@ -37,7 +38,7 @@ using namespace NWindows;
 
 const UInt64 kMaxCheckStartPosition = 1 << 22;
 
-extern bool Create7ZipArchive(C7ZipLibrary * pLibrary, IInArchive * pInArchive, C7ZipArchive ** pArchive);
+extern bool Create7ZipArchive(C7ZipLibrary * pLibrary, IInArchive * pInArchive, C7ZipArchive ** pArchive, const wstring &formatName);
 
 static bool ReadStream(CMyComPtr<IInStream> & inStream, Int64 offset, UINT32 seekOrigin, CByteBuffer & signature) 
 {
@@ -80,14 +81,16 @@ static bool ReadStream(CMyComPtr<IInStream> & inStream, Int64 offset, UINT32 see
 
 static int CreateInArchive(pU7ZipFunctions pFunctions,
 						   const C7ZipObjectPtrArray & formatInfos,
-                           CMyComPtr<IInStream> & inStream,
+               CMyComPtr<IInStream> & inStream,
 						   wstring ext,
 						   CMyComPtr<IInArchive> & archive,
-                           bool fCheckFileTypeBySignature)
+               bool fCheckFileTypeBySignature,
+							 wstring &formatName)
 {
   for (C7ZipObjectPtrArray::const_iterator it = formatInfos.begin();
        it != formatInfos.end();it++) {
     const C7ZipFormatInfo * pInfo = dynamic_cast<const C7ZipFormatInfo *>(*it);
+		formatName = pInfo->m_Name;
 
     if (!fCheckFileTypeBySignature) {
       for(WStringArray::const_iterator extIt = pInfo->Exts.begin(); extIt != pInfo->Exts.end(); extIt++) {
@@ -196,7 +199,7 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
 								   C7ZipArchiveOpenCallback * pOpenCallBack,
 								   C7ZipArchive ** ppArchive, 
 								   HRESULT * pResult,
-                                   bool fCheckFileTypeBySignature)
+                   bool fCheckFileTypeBySignature)
 {
 	CMyComPtr<IInArchive> archive = NULL;
 	CMyComPtr<ISetCompressCodecsInfo> setCompressCodecsInfo = NULL;
@@ -208,14 +211,16 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
 	CMyComPtr<IInStream> inStream(pArchiveStream); 
 
 	CMyComPtr<IArchiveOpenCallback> openCallBack(pOpenCallBack);
+	wstring formatName;
 
 	do {
 		FAIL_RET(CreateInArchive(pHandler->GetFunctions(),
-								 pHandler->GetFormatInfoArray(),
-                                 inStream,
-								 extension,
-								 archive,
-                                 fCheckFileTypeBySignature), pResult);
+														 pHandler->GetFormatInfoArray(),
+														 inStream,
+								             extension,
+								             archive,
+                             fCheckFileTypeBySignature,
+														 formatName), pResult);
 
 		if (archive == NULL)
 			return false;
@@ -274,5 +279,5 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
 	if (archive == NULL)
 		return S_FALSE;
 
-	return Create7ZipArchive(pLibrary, archive, ppArchive) ? S_OK : S_FALSE;
+	return Create7ZipArchive(pLibrary, archive, ppArchive, formatName) ? S_OK : S_FALSE;
 }

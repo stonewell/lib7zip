@@ -1,0 +1,12 @@
+diff -Naur a/CPP/Windows/FileIO.h b/CPP/Windows/FileIO.h
+--- a/CPP/Windows/FileIO.h	2015-08-02 13:42:34.000000000 +0200
++++ b/CPP/Windows/FileIO.h	2017-11-20 11:21:37.699451700 +0100
+@@ -6,7 +6,7 @@
+ #include "../Common/MyWindows.h"
+ 
+ #if defined(_WIN32) && !defined(UNDER_CE)
+-#include <winioctl.h>
++// #include <winioctl.h>
+ #endif
+ 
+ #include "../Common/MyString.h"
