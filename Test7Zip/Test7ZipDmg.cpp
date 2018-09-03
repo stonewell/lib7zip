@@ -41,7 +41,7 @@ public:
 				m_strFileExt = L"7z";
 #endif
 			}
-			wprintf(L"Ext:%ls\n", m_strFileExt.c_str());
+			// wprintf(L"Ext:%ls\n", m_strFileExt.c_str());
 		}
 		else {
 			wprintf(L"fileName.c_str(): %s cant open\n", fileName.c_str());
@@ -56,7 +56,7 @@ public:
 public:
 	virtual wstring GetExt() const
 	{
-		wprintf(L"GetExt:%ls, but return 001, try to test signature match\n", m_strFileExt.c_str());
+		// wprintf(L"GetExt:%ls, but return 001, try to test signature match\n", m_strFileExt.c_str());
 		return L"001";
 	}
 
@@ -66,7 +66,6 @@ public:
 			return 1;
 
 		int count = fread(data, 1, size, m_pFile);
-		wprintf(L"Read:%d %d\n", size, count);
 
 		if (count >= 0) {
 			if (processedSize != NULL)
@@ -135,7 +134,7 @@ public:
 			m_strFileExt = L"7z";
 #endif
 		}
-		wprintf(L"Ext:%ls\n", m_strFileExt.c_str());
+		// wprintf(L"Ext:%ls\n", m_strFileExt.c_str());
 	}
 
 	virtual ~TestOutStream()
@@ -232,17 +231,17 @@ int main(int argc, char * argv[])
 		return 1;
 	}
 
-	size_t size = exts.size();
+	// size_t size = exts.size();
 
-	for(size_t i = 0; i < size; i++) {
-		wstring ext = exts[i];
+	// for(size_t i = 0; i < size; i++) {
+	// 	wstring ext = exts[i];
 
-		for(size_t j = 0; j < ext.size(); j++) {
-			wprintf(L"%c", (char)(ext[j] &0xFF));
-		}
+	// 	for(size_t j = 0; j < ext.size(); j++) {
+	// 		wprintf(L"%c", (char)(ext[j] &0xFF));
+	// 	}
 
-		wprintf(L"\n");
-	}
+	// 	wprintf(L"\n");
+	// }
 
 	C7ZipArchive * pArchive = NULL;
 
@@ -259,45 +258,45 @@ int main(int argc, char * argv[])
 			C7ZipArchiveItem * pArchiveItem = NULL;
 
 			if (pArchive->GetItemInfo(i, &pArchiveItem)) {
-				wprintf(L"%d,%ls,%d\n", pArchiveItem->GetArchiveIndex(),
-						pArchiveItem->GetFullPath().c_str(),
-						pArchiveItem->IsDir());
+		// 		wprintf(L"%d,%ls,%d\n", pArchiveItem->GetArchiveIndex(),
+		// 				pArchiveItem->GetFullPath().c_str(),
+		// 				pArchiveItem->IsDir());
 
-				wprintf(L"get all properties\n");
-				for(lib7zip::PropertyIndexEnum index = lib7zip::kpidPackSize;
-					index <= lib7zip::kpidIsDir;
-					index = (lib7zip::PropertyIndexEnum)(index + 1)) {
-					wstring strVal = L"";
-					unsigned __int64 val = 0;
-					bool bVal = false;
+		// 		wprintf(L"get all properties\n");
+		// 		for(lib7zip::PropertyIndexEnum index = lib7zip::kpidPackSize;
+		// 			index <= lib7zip::kpidIsDir;
+		// 			index = (lib7zip::PropertyIndexEnum)(index + 1)) {
+		// 			wstring strVal = L"";
+		// 			unsigned __int64 val = 0;
+		// 			bool bVal = false;
 
-					bool result = pArchiveItem->GetUInt64Property(index, val);
+		// 			bool result = pArchiveItem->GetUInt64Property(index, val);
 
-					wprintf(L"\n\nGetProperty:%d %ls\n", (int)index,
-							index_names[(int)index]);
+		// 			wprintf(L"\n\nGetProperty:%d %ls\n", (int)index,
+		// 					index_names[(int)index]);
 
-					wprintf(L"UInt64 result:%ls val=%ld\n",
-							result ? L"true" : L"false",
-							val);
+		// 			wprintf(L"UInt64 result:%ls val=%ld\n",
+		// 					result ? L"true" : L"false",
+		// 					val);
 
-					result = pArchiveItem->GetBoolProperty(index, bVal);
+		// 			result = pArchiveItem->GetBoolProperty(index, bVal);
 
-					wprintf(L"Bool result:%ls val=%ls\n",
-							result ? L"true" : L"false",
-							bVal ? L"true" : L"false");
+		// 			wprintf(L"Bool result:%ls val=%ls\n",
+		// 					result ? L"true" : L"false",
+		// 					bVal ? L"true" : L"false");
 
-					result = pArchiveItem->GetStringProperty(index, strVal);
+		// 			result = pArchiveItem->GetStringProperty(index, strVal);
 
-					wprintf(L"String result:%ls val=%ls\n",
-							result ? L"true" : L"false",
-							strVal.c_str());
+		// 			wprintf(L"String result:%ls val=%ls\n",
+		// 					result ? L"true" : L"false",
+		// 					strVal.c_str());
 
-					result = pArchiveItem->GetFileTimeProperty(index, val);
+		// 			result = pArchiveItem->GetFileTimeProperty(index, val);
 
-					wprintf(L"FileTime result:%ls val=%ld\n",
-							result ? L"true" : L"false",
-							val);
-				}
+		// 			wprintf(L"FileTime result:%ls val=%ld\n",
+		// 					result ? L"true" : L"false",
+		// 					val);
+				// }
 
 				//set archive password or item password
 				pArchive->SetArchivePassword(L"test");

@@ -37,7 +37,9 @@ using namespace NWindows;
 
 const UInt64 kMaxCheckStartPosition = 1 << 22;
 
-extern bool Create7ZipArchive(C7ZipLibrary * pLibrary, IInArchive * pInArchive, C7ZipArchive ** pArchive);
+extern bool Create7ZipArchive(C7ZipLibrary * pLibrary,
+                              const std::vector<IInArchive *> & archives,
+                              IInArchive * pInArchive, C7ZipArchive ** pArchive);
 
 static bool ReadStream(CMyComPtr<IInStream> & inStream, Int64 offset, UINT32 seekOrigin, CByteBuffer & signature)
 {
@@ -219,9 +221,10 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
 								   HRESULT * pResult,
                                    bool fCheckFileTypeBySignature)
 {
-	CMyComPtr<IInArchive> archive = NULL;
-	CMyComPtr<ISetCompressCodecsInfo> setCompressCodecsInfo = NULL;
-	CMyComPtr<IInArchiveGetStream> getStream = NULL;
+    CMyComPtr<IInArchive> archive = NULL;
+    CMyComPtr<ISetCompressCodecsInfo> setCompressCodecsInfo = NULL;
+    CMyComPtr<IInArchiveGetStream> getStream = NULL;
+
 	wstring extension = pInStream->GetExt();
 
 	C7ZipInStreamWrapper * pArchiveStream = new C7ZipInStreamWrapper(pInStream);
@@ -230,7 +233,12 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
 
 	CMyComPtr<IArchiveOpenCallback> openCallBack(pOpenCallBack);
 
+    std::vector<IInArchive *> archives;
+
 	do {
+        if (archive != NULL)
+            archives.push_back(archive);
+
 		FAIL_RET(CreateInArchive(pHandler->GetFunctions(),
 								 pHandler->GetFormatInfoArray(),
                                  inStream,
@@ -295,5 +303,5 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
 	if (archive == NULL)
 		return S_FALSE;
 
-	return Create7ZipArchive(pLibrary, archive, ppArchive) ? S_OK : S_FALSE;
+	return Create7ZipArchive(pLibrary, archives, archive, ppArchive) ? S_OK : S_FALSE;
 }

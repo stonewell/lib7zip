@@ -19,7 +19,7 @@
 
 #include "HelperFuncs.h"
 
-extern bool Create7ZipArchiveItem(C7ZipArchive * pArchive, 
+extern bool Create7ZipArchiveItem(C7ZipArchive * pArchive,
 								  IInArchive * pInArchive,
 								  unsigned int nIndex,
 								  C7ZipArchiveItem ** ppItem);
@@ -77,7 +77,7 @@ public:
 
 	// ICryptoGetTextPassword
 	STDMETHOD(CryptoGetTextPassword)(BSTR *aPassword);
-	
+
 private:
 	C7ZipOutStreamWrap * _outFileStreamSpec;
 	CMyComPtr<ISequentialOutStream> _outFileStream;
@@ -86,7 +86,7 @@ private:
 	const C7ZipArchive * m_pArchive;
 	const C7ZipArchiveItem * m_pItem;
 public:
-	CArchiveExtractCallback(C7ZipOutStream * pOutStream,const C7ZipArchive * pArchive,const C7ZipArchiveItem * pItem) : 
+	CArchiveExtractCallback(C7ZipOutStream * pOutStream,const C7ZipArchive * pArchive,const C7ZipArchiveItem * pItem) :
 		m_pOutStream(pOutStream),
 		m_pArchive(pArchive),
 		m_pItem(pItem)
@@ -97,7 +97,9 @@ public:
 class C7ZipArchiveImpl : public virtual C7ZipArchive
 {
 public:
-	C7ZipArchiveImpl(C7ZipLibrary * pLibrary, IInArchive * pInArchive);
+	C7ZipArchiveImpl(C7ZipLibrary * pLibrary, IInArchive * pInArchive,
+                     const std::vector<IInArchive *> & archives
+                     );
 	virtual ~C7ZipArchiveImpl();
 
 public:
@@ -128,16 +130,23 @@ private:
 	CMyComPtr<IInArchive> m_pInArchive;
 	C7ZipObjectPtrArray m_ArchiveItems;
 	wstring m_Password;
+    std::vector<IInArchive *> m_Archives;
 };
 
-C7ZipArchiveImpl::C7ZipArchiveImpl(C7ZipLibrary * pLibrary, IInArchive * pInArchive) :
+C7ZipArchiveImpl::C7ZipArchiveImpl(C7ZipLibrary * pLibrary, IInArchive * pInArchive,
+                                   const std::vector<IInArchive *> & archives
+                                   ) :
 m_pLibrary(pLibrary),
-m_pInArchive(pInArchive)
+m_pInArchive(pInArchive),
+m_Archives(archives)
 {
 }
 
 C7ZipArchiveImpl::~C7ZipArchiveImpl()
 {
+    for(auto archive : m_Archives) {
+        delete archive;
+    }
 }
 
 bool C7ZipArchiveImpl::GetItemCount(unsigned int * pNumItems)
@@ -185,7 +194,7 @@ bool C7ZipArchiveImpl::Extract(unsigned int index, C7ZipOutStream * pOutStream, 
 
 bool C7ZipArchiveImpl::Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutStream * pOutStream)
 {
-	CArchiveExtractCallback *extractCallbackSpec = 
+	CArchiveExtractCallback *extractCallbackSpec =
 		new CArchiveExtractCallback(pOutStream, this, pArchiveItem);
 	CMyComPtr<IArchiveExtractCallback> extractCallback(extractCallbackSpec);
 
@@ -233,9 +242,11 @@ bool C7ZipArchiveImpl::IsPasswordSet() const
 	return !(m_Password == L"");
 }
 
-bool Create7ZipArchive(C7ZipLibrary * pLibrary, IInArchive * pInArchive, C7ZipArchive ** ppArchive)
+bool Create7ZipArchive(C7ZipLibrary * pLibrary,
+                       const std::vector<IInArchive *> & archives,
+                       IInArchive * pInArchive, C7ZipArchive ** ppArchive)
 {
-	C7ZipArchiveImpl * pArchive = new C7ZipArchiveImpl(pLibrary, pInArchive);
+	C7ZipArchiveImpl * pArchive = new C7ZipArchiveImpl(pLibrary, pInArchive, archives);
 
 	if (pArchive->Initialize())
 	{
@@ -310,12 +321,12 @@ STDMETHODIMP CArchiveExtractCallback::CryptoGetTextPassword(BSTR *password)
 		strPassword = m_pItem->GetArchiveItemPassword();
 	else if (m_pArchive->IsPasswordSet())
 		strPassword = m_pArchive->GetArchivePassword();
-	
+
 #ifdef _WIN32
 	return StringToBstr(strPassword.c_str(), password);
 #else
 	*password = ::SysAllocString(strPassword.c_str());
-	
+
 	return S_OK;
 #endif
 }
@@ -388,7 +399,7 @@ bool C7ZipArchiveImpl::GetBoolProperty(lib7zip::PropertyIndexEnum propertyIndex,
 
 	NWindows::NCOM::CPropVariant prop;
 
-	if (m_pInArchive->GetArchiveProperty(p7zip_index, &prop) == 0 && 
+	if (m_pInArchive->GetArchiveProperty(p7zip_index, &prop) == 0 &&
 		prop.vt == VT_BOOL) {
 		val = prop.bVal;
 		return true;
@@ -481,4 +492,3 @@ C7ZipArchive::C7ZipArchive()
 C7ZipArchive::~C7ZipArchive()
 {
 }
-

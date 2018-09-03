@@ -1,4 +1,4 @@
-bin_PROGRAMS = test7zip test7zipmulti test7zprops test7zcrypt test7zipsig test7ziprar5 test7zip2
+bin_PROGRAMS = test7zip test7zipmulti test7zprops test7zcrypt test7zipsig test7ziprar5 test7zip2 test7zipdmg
 
 test7zip_SOURCES = \
 	stdafx.cpp  stdafx.h  Test7Zip.cpp
@@ -17,6 +17,9 @@ test7zcrypt_SOURCES = \
 test7zipsig_SOURCES = \
 	stdafx.cpp  stdafx.h  Test7ZipSignature.cpp
 
+test7zipdmg_SOURCES = \
+	stdafx.cpp  stdafx.h  Test7ZipDmg.cpp
+
 test7ziprar5_SOURCES = \
 	stdafx.cpp  stdafx.h  Test7ZipRar5.cpp
 if WIN32
@@ -34,6 +37,9 @@ test7zip2_LDADD = ../Lib7Zip/lib7zip.a \
 test7zipsig_LDADD = ../Lib7Zip/lib7zip.a \
 	$(A_LIBS)
 
+test7zipdmg_LDADD = ../Lib7Zip/lib7zip.a \
+	$(A_LIBS)
+
 test7zipmulti_LDADD = ../Lib7Zip/lib7zip.a \
 	$(A_LIBS)
 
@@ -46,4 +52,4 @@ test7zcrypt_LDADD = ../Lib7Zip/lib7zip.a \
 test7ziprar5_LDADD = ../Lib7Zip/lib7zip.a \
 	$(A_LIBS)
 
-EXTRA_DIST = 
+EXTRA_DIST =
