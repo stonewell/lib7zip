@@ -64,11 +64,11 @@ C7ZipFormatInfo::C7ZipFormatInfo()
     m_UpdateEnabled = false;
     m_KeepName = false;
 
-#if MY_VER_MAJOR < 15    
+#if MY_VER_MAJOR < 15
     m_StartSignature.SetCapacity(0);
 	m_FinishSignature.SetCapacity(0);
 #endif
-    
+
     Exts.clear();
     AddExts.clear();
 }
@@ -103,12 +103,12 @@ bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats)
         GUID classID;
         wstring ext, addExt;
 
-        if (ReadStringProp(pFunctions->v.GetHandlerProperty, 
+        if (ReadStringProp(pFunctions->v.GetHandlerProperty,
             pFunctions->v.GetHandlerProperty2, i, NArchiveEnumPrefix::kName, name) != S_OK)
             continue;
 
         NWindows::NCOM::CPropVariant prop;
-        if (ReadProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, 
+        if (ReadProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2,
             i, NArchiveEnumPrefix::kClassID, prop) != S_OK)
             continue;
         if (prop.vt != VT_BSTR)
@@ -116,54 +116,54 @@ bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats)
 
         classID = *(const GUID *)prop.bstrVal;
 
-        if (ReadStringProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, 
+        if (ReadStringProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2,
             i, NArchiveEnumPrefix::kExtension, ext) != S_OK)
             continue;
 
-        if (ReadStringProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, 
+        if (ReadStringProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2,
             i, NArchiveEnumPrefix::kAddExtension, addExt) != S_OK)
             continue;
 
-        ReadBoolProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, i, 
+        ReadBoolProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, i,
             NArchiveEnumPrefix::kUpdate, updateEnabled);
 
         if (updateEnabled)
         {
-            ReadBoolProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2, 
+            ReadBoolProp(pFunctions->v.GetHandlerProperty, pFunctions->v.GetHandlerProperty2,
                 i, NArchiveEnumPrefix::kKeepName, keepName);
         }
 
         C7ZipFormatInfo * pInfo = new C7ZipFormatInfo();
 
 #if MY_VER_MAJOR >= 15
-        if (ReadProp(pFunctions->v.GetHandlerProperty, 
+        if (ReadProp(pFunctions->v.GetHandlerProperty,
                      pFunctions->v.GetHandlerProperty2, i, NArchiveEnumPrefix::kSignature, prop) == S_OK) {
-#else        
-        if (ReadProp(pFunctions->v.GetHandlerProperty, 
+#else
+        if (ReadProp(pFunctions->v.GetHandlerProperty,
                      pFunctions->v.GetHandlerProperty2, i, NArchiveEnumPrefix::kStartSignature, prop) == S_OK) {
-#endif	        
+#endif
           if (prop.vt == VT_BSTR) {
             UINT len = ::SysStringByteLen(prop.bstrVal);
 #if MY_VER_MAJOR >= 15
             pInfo->m_StartSignature.CopyFrom((const Byte *)prop.bstrVal, len);
-#else          
+#else
             pInfo->m_StartSignature.SetCapacity(len);
             memmove(pInfo->m_StartSignature, prop.bstrVal, len);
 #endif
 #if MY_VER_MAJOR >= 15
             if (len > 0)
                 pInfo->Signatures.Add(pInfo->m_StartSignature);
-#endif            
+#endif
           }
         }
 
 #if MY_VER_MAJOR >= 15
-        if (ReadProp(pFunctions->v.GetHandlerProperty, 
+        if (ReadProp(pFunctions->v.GetHandlerProperty,
                      pFunctions->v.GetHandlerProperty2, i, NArchiveEnumPrefix::kMultiSignature, prop) == S_OK) {
-#else	        
-        if (ReadProp(pFunctions->v.GetHandlerProperty, 
+#else
+        if (ReadProp(pFunctions->v.GetHandlerProperty,
                      pFunctions->v.GetHandlerProperty2, i, NArchiveEnumPrefix::kFinishSignature, prop) == S_OK) {
-#endif	        
+#endif
           if (prop.vt == VT_BSTR) {
             UINT len = ::SysStringByteLen(prop.bstrVal);
 #if MY_VER_MAJOR >= 15
@@ -171,7 +171,7 @@ bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats)
             ParseSignatures(pInfo->m_FinishSignature,
                             (unsigned)pInfo->m_FinishSignature.Size(),
                             pInfo->Signatures);
-#else          
+#else
             pInfo->m_FinishSignature.SetCapacity(len);
             memmove(pInfo->m_FinishSignature, prop.bstrVal, len);
 #endif
@@ -179,7 +179,7 @@ bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats)
         }
 
 #if MY_VER_MAJOR >= 15
-        if (ReadProp(pFunctions->v.GetHandlerProperty, 
+        if (ReadProp(pFunctions->v.GetHandlerProperty,
                      pFunctions->v.GetHandlerProperty2, i,
                      NArchiveEnumPrefix::kSignatureOffset, prop) == S_OK) {
             if (prop.vt == VT_UI4) {
@@ -207,4 +207,3 @@ bool LoadFormats(pU7ZipFunctions pFunctions, C7ZipObjectPtrArray & formats)
 
     return true;
 }
-

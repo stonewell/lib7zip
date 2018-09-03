@@ -39,7 +39,7 @@ const UInt64 kMaxCheckStartPosition = 1 << 22;
 
 extern bool Create7ZipArchive(C7ZipLibrary * pLibrary, IInArchive * pInArchive, C7ZipArchive ** pArchive);
 
-static bool ReadStream(CMyComPtr<IInStream> & inStream, Int64 offset, UINT32 seekOrigin, CByteBuffer & signature) 
+static bool ReadStream(CMyComPtr<IInStream> & inStream, Int64 offset, UINT32 seekOrigin, CByteBuffer & signature)
 {
   UInt64 savedPosition = 0;
   UInt64 newPosition = 0;
@@ -47,7 +47,7 @@ static bool ReadStream(CMyComPtr<IInStream> & inStream, Int64 offset, UINT32 see
   UInt32 readCount = signature.Size();
 #else
   UInt32 readCount = signature.GetCapacity();
-#endif  
+#endif
   unsigned char * buf = signature;
 
   if (S_OK != inStream->Seek(0, FILE_CURRENT, &savedPosition))
@@ -92,39 +92,60 @@ static int CreateInArchive(pU7ZipFunctions pFunctions,
     if (!fCheckFileTypeBySignature) {
       for(WStringArray::const_iterator extIt = pInfo->Exts.begin(); extIt != pInfo->Exts.end(); extIt++) {
         if (MyStringCompareNoCase((*extIt).c_str(), ext.c_str()) == 0) {
-          return pFunctions->v.CreateObject(&pInfo->m_ClassID, 
+          return pFunctions->v.CreateObject(&pInfo->m_ClassID,
                                             &IID_IInArchive, (void **)&archive);
         }
       }
     } else {
 #if MY_VER_MAJOR >= 15
       if (pInfo->Signatures.Size() == 0 /*&& pInfo->m_FinishSignature.length() == 0*/)
-#else     
+#else
       if (pInfo->m_StartSignature.GetCapacity() == 0 /*&& pInfo->m_FinishSignature.length() == 0*/)
-#endif          
+#endif
         continue; //no signature
+
+      bool dmg_archive = false;
+      for(WStringArray::const_iterator extIt = pInfo->Exts.begin(); extIt != pInfo->Exts.end(); extIt++) {
+        if (MyStringCompareNoCase((*extIt).c_str(), L"dmg") == 0) {
+            dmg_archive = true;
+            break;
+        }
+      }
 
 #if MY_VER_MAJOR >= 15
       for(unsigned i = 0; i < pInfo->Signatures.Size(); i++) {
           CByteBuffer signature(pInfo->Signatures[i].Size());
-          
+          CByteBuffer signatureEnd(pInfo->Signatures[i].Size());
+
           if (!ReadStream(inStream, pInfo->SignatureOffset, FILE_BEGIN, signature))
               continue; //unable to read signature
 
-          if (signature == pInfo->Signatures[i]) {
-              return pFunctions->v.CreateObject(&pInfo->m_ClassID, 
+          if (dmg_archive) {
+              ReadStream(inStream, -0x200, FILE_END, signatureEnd);
+          }
+
+          if (signature == pInfo->Signatures[i]
+              || (dmg_archive && signatureEnd == pInfo->Signatures[i])) {
+              return pFunctions->v.CreateObject(&pInfo->m_ClassID,
                                                 &IID_IInArchive, (void **)&archive);
           }
       }
-#else      
+#else
       CByteBuffer signature;
       signature.SetCapacity(pInfo->m_StartSignature.GetCapacity());
-      
+      CByteBuffer signatureEnd;
+      signatureEnd.SetCapacity(pInfo->m_StartSignature.GetCapacity());
+
       if (!ReadStream(inStream, 0, FILE_BEGIN, signature))
         continue; //unable to read signature
 
-      if (signature == pInfo->m_StartSignature) {
-        return pFunctions->v.CreateObject(&pInfo->m_ClassID, 
+      if (dmg_archive) {
+          ReadStream(inStream, -0x200, FILE_END, signatureEnd);
+      }
+
+      if (signature == pInfo->m_StartSignature ||
+          (dmg_archive && signatureEnd == pInfo->m_StartSignature)) {
+        return pFunctions->v.CreateObject(&pInfo->m_ClassID,
                                           &IID_IInArchive, (void **)&archive);
       }
 #endif
@@ -138,7 +159,7 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
 								   C7ZipDllHandler * pHandler,
 								   C7ZipInStream * pInStream,
 								   C7ZipArchiveOpenCallback * pOpenCallBack,
-								   C7ZipArchive ** ppArchive, 
+								   C7ZipArchive ** ppArchive,
 								   HRESULT * pResult,
                                    bool fCheckFileTypeBySignature);
 
@@ -151,13 +172,13 @@ HRESULT Lib7ZipOpenArchive(C7ZipLibrary * pLibrary,
                            bool fCheckFileTypeBySignature)
 {
 	C7ZipArchiveOpenCallback * pOpenCallBack = new C7ZipArchiveOpenCallback(NULL);
-	
+
 	if (passwd.length() > 0) {
 		pOpenCallBack->PasswordIsDefined = true;
 		pOpenCallBack->Password = passwd;
 	}
-	
-	return InternalOpenArchive(pLibrary, pHandler, pInStream, 
+
+	return InternalOpenArchive(pLibrary, pHandler, pInStream,
                                pOpenCallBack, ppArchive, pResult, fCheckFileTypeBySignature);
 }
 
@@ -178,7 +199,7 @@ HRESULT Lib7ZipOpenMultiVolumeArchive(C7ZipLibrary * pLibrary,
 
 	if (pInStream == NULL)
 		return false;
-	
+
 	C7ZipArchiveOpenCallback * pOpenCallBack = new C7ZipArchiveOpenCallback(pMultiVolumes);
 
 	if (passwd.length() > 0) {
@@ -186,7 +207,7 @@ HRESULT Lib7ZipOpenMultiVolumeArchive(C7ZipLibrary * pLibrary,
 		pOpenCallBack->Password = passwd;
 	}
 
-	return InternalOpenArchive(pLibrary, pHandler, pInStream, 
+	return InternalOpenArchive(pLibrary, pHandler, pInStream,
                                pOpenCallBack, ppArchive, pResult, fCheckFileTypeBySignature);
 }
 
@@ -194,7 +215,7 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
 								   C7ZipDllHandler * pHandler,
 								   C7ZipInStream * pInStream,
 								   C7ZipArchiveOpenCallback * pOpenCallBack,
-								   C7ZipArchive ** ppArchive, 
+								   C7ZipArchive ** ppArchive,
 								   HRESULT * pResult,
                                    bool fCheckFileTypeBySignature)
 {
@@ -205,7 +226,7 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
 
 	C7ZipInStreamWrapper * pArchiveStream = new C7ZipInStreamWrapper(pInStream);
 
-	CMyComPtr<IInStream> inStream(pArchiveStream); 
+	CMyComPtr<IInStream> inStream(pArchiveStream);
 
 	CMyComPtr<IArchiveOpenCallback> openCallBack(pOpenCallBack);
 
@@ -248,15 +269,15 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
 
 		if (archive->QueryInterface(IID_IInArchiveGetStream, (void **)&getStream) != S_OK || !getStream)
 			break;
-    
+
 		CMyComPtr<ISequentialInStream> subSeqStream;
 		if (getStream->GetStream(mainSubfile, &subSeqStream) != S_OK || !subSeqStream)
 			break;
-    	
+
 		inStream = NULL;
 		if (subSeqStream.QueryInterface(IID_IInStream, &inStream) != S_OK || !inStream)
 			break;
-    
+
 		wstring path;
 
 		FAIL_RET(GetArchiveItemPath(archive, mainSubfile, path), pResult);
