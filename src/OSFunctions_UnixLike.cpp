@@ -122,13 +122,13 @@ int myselect(const struct dirent * pDir )
   {
     closedir( pTmpDir );
 
-    int result = chdir( szEntryName );
+    (void)chdir( szEntryName );
 
     struct dirent **namelist = NULL;
 
     scandir( ".",&namelist,myselect,alphasort );
 
-    result = chdir( ".." );
+    (void)chdir( ".." );
   }
 
   return 0;

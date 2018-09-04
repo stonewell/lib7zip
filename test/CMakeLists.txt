@@ -22,7 +22,8 @@ TARGET_INCLUDE_DIRECTORIES(${test_target_name} PRIVATE
 )
 
 TARGET_LINK_LIBRARIES(${test_target_name}
-    lib7zip
+  lib7zip
+  ${CMAKE_DL_LIBS}
 )
 
 ENDFOREACH()
