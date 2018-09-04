@@ -7,16 +7,12 @@ Tips
     * Under UNIX/LINUX like system
         * Get a copy of p7zip source code, and extract to a folder
         * Define a env P7ZIP_SOURCE_DIR point to the extracted folder
-        * ./autogen.sh
-        * Remove includes/C and includes/CPP completely if they are existing.
-        * Call configure *__--disable-dependency-tracking__* && make to build lib7zip library, or call autogen.sh
+        * cmake -DBUILD_SHARED_LIB=OFF -DP7ZIP_SOURCE_DIR=${P7ZIP_SOURCE_DIR}
     * Under windows
         * Get mingw from http://www.mingw.org
         * Get a copy of original 7zip source code, NOT the p7zip for linux
         * Define a env P7ZIP_SOURCE_DIR point to the extracted folder
-        * ./autogen.sh
-        * Remove includes/C and includes/CPP completely if they are existing.
-        * Call configure *__--disable-dependency-tracking__* && make to build lib7zip library, or call autogen.sh
+        * cmake -DBUILD_SHARED_LIB=OFF -DP7ZIP_SOURCE_DIR=${P7ZIP_SOURCE_DIR}
 * Run lib7zip
     * Under UNIX/LINUX like system
         * install p7zip binary
@@ -45,6 +41,12 @@ Related Projects
 
 Change Log
 ====
+3.0.0
+----
+1. move build system to cmake
+2. fix bug when do signature detect for dmg files
+3. fix bug of memory leaking when deal with sub archive
+
 2.0.0
 ----
 1. Make the library compiling with latest p7zip 15.9.0 and 7zip 15.10.0
