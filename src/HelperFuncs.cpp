@@ -2,7 +2,6 @@
 #include "config.h"
 #endif
 
-
 //#define BUILD_LIB7ZIP
 //#ifndef INITGUID
 //#define INITGUID
