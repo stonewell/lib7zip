@@ -1,7 +1,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-//#include <initguid.h>
+
 
 //#define BUILD_LIB7ZIP
 //#ifndef INITGUID
