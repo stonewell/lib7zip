@@ -7,6 +7,11 @@ SET(lib7zip_src
 7ZipCodecInfo.h             7ZipFormatInfo.h            7zipLibrary.cpp             OSFunctions_OS2.h
 )
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    SET(lib7zip_src ${lib7zip_src} GUIDs.h GUIDs.cpp)
+endif()
+
+
 SET(lib7zip_NODIST_SOURCES ${P7ZIP_SOURCE_DIR}/CPP/Common/MyWindows.cpp
 			   ${P7ZIP_SOURCE_DIR}/CPP/Windows/PropVariant.cpp
 )
