@@ -34,7 +34,7 @@ using namespace NWindows;
 const UInt64 kMaxCheckStartPosition = 1 << 22;
 
 extern bool Create7ZipArchive(C7ZipLibrary * pLibrary,
-                              const std::vector<IInArchive *> & archives,
+                              const std::vector<CMyComPtr<IInArchive>> & archives,
                               IInArchive * pInArchive, C7ZipArchive ** pArchive);
 
 static bool ReadStream(CMyComPtr<IInStream> & inStream, Int64 offset, UINT32 seekOrigin, CByteBuffer & signature)
@@ -229,7 +229,7 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
 
 	CMyComPtr<IArchiveOpenCallback> openCallBack(pOpenCallBack);
 
-    std::vector<IInArchive *> archives;
+    std::vector<CMyComPtr<IInArchive>> archives;
 
 	do {
         if (archive != NULL)

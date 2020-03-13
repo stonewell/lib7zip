@@ -98,7 +98,7 @@ class C7ZipArchiveImpl : public virtual C7ZipArchive
 {
 public:
 	C7ZipArchiveImpl(C7ZipLibrary * pLibrary, IInArchive * pInArchive,
-                     const std::vector<IInArchive *> & archives
+                     const std::vector<CMyComPtr<IInArchive>> & archives
                      );
 	virtual ~C7ZipArchiveImpl();
 
@@ -129,21 +129,23 @@ private:
 	CMyComPtr<IInArchive> m_pInArchive;
 	C7ZipObjectPtrArray m_ArchiveItems;
 	wstring m_Password;
-    std::vector<IInArchive *> m_Archives;
+    std::vector<CMyComPtr<IInArchive>> m_Archives;
 };
 
 C7ZipArchiveImpl::C7ZipArchiveImpl(C7ZipLibrary * pLibrary, IInArchive * pInArchive,
-                                   const std::vector<IInArchive *> & archives
-                                   ) :
-m_pInArchive(pInArchive),
-m_Archives(archives)
+                                   const std::vector<CMyComPtr<IInArchive>> & archives
+                                   )
+    : m_pInArchive(pInArchive)
+    , m_Archives(archives)
 {
 }
 
 C7ZipArchiveImpl::~C7ZipArchiveImpl()
 {
+    m_pInArchive.Release();
+
     for(auto archive : m_Archives) {
-        delete archive;
+        archive.Release();
     }
 }
 
@@ -241,7 +243,7 @@ bool C7ZipArchiveImpl::IsPasswordSet() const
 }
 
 bool Create7ZipArchive(C7ZipLibrary * pLibrary,
-                       const std::vector<IInArchive *> & archives,
+                       const std::vector<CMyComPtr<IInArchive>> & archives,
                        IInArchive * pInArchive, C7ZipArchive ** ppArchive)
 {
 	C7ZipArchiveImpl * pArchive = new C7ZipArchiveImpl(pLibrary, pInArchive, archives);

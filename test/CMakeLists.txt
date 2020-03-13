@@ -3,7 +3,7 @@ SET(common_src
 )
 
 SET (test_src Test7Zip.cpp              Test7ZipCryptFileName.cpp Test7ZipMulti.cpp         Test7ZipSignature.cpp
-Test7Zip2.cpp             Test7ZipDmg.cpp           Test7ZipRar5.cpp
+Test7Zip2.cpp             Test7ZipDmg.cpp           Test7ZipRar5.cpp test_archive.cpp
 )
 
 FOREACH(f ${test_src})
