@@ -17,11 +17,11 @@
 #ifndef __int64
 #define __int64 long long int
 #endif
-typedef std::basic_string<wchar_t> wstring;
-typedef std::basic_string<char> string;
 #ifndef CLASS_E_CLASSNOTAVAILABLE
 #define CLASS_E_CLASSNOTAVAILABLE (0x80040111L)
 #endif
+#endif
+
 #define FILE_BEGIN           0
 #define FILE_CURRENT         1
 #define FILE_END             2
@@ -29,10 +29,8 @@ typedef std::basic_string<char> string;
 #ifndef S_OK
 #define S_OK 				 0
 #endif
-#else
 typedef std::basic_string<wchar_t> wstring;
 typedef std::basic_string<char> string;
-#endif
 
 typedef std::vector<wstring> WStringArray;
 
