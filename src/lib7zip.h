@@ -12,6 +12,7 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 
 #ifndef _WIN32
 #ifndef __int64
@@ -33,6 +34,7 @@ typedef std::basic_string<wchar_t> wstring;
 typedef std::basic_string<char> string;
 
 typedef std::vector<wstring> WStringArray;
+typedef std::function<void(float percent, void *user)> ProcessCallback;
 
 class C7ZipObject
 {
@@ -162,6 +164,7 @@ public:
 	virtual bool Extract(unsigned int index, C7ZipOutStream * pOutStream) = 0;
 	virtual bool Extract(unsigned int index, C7ZipOutStream * pOutStream, const wstring & pwd) = 0;
 	virtual bool Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutStream * pOutStream) = 0;
+	virtual bool Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutStream * pOutStream, const ProcessCallback &callback, void * user) = 0;
 	virtual wstring GetArchivePassword() const  = 0;
 	virtual void SetArchivePassword(const wstring & password) = 0;
 	virtual bool IsPasswordSet() const = 0;

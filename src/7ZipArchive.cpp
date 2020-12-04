@@ -78,6 +78,8 @@ public:
 	// ICryptoGetTextPassword
 	STDMETHOD(CryptoGetTextPassword)(BSTR *aPassword);
 
+	STDMETHOD(SetCallback)(const ProcessCallback& Callback) { m_Callback = Callback; return S_OK; }
+	STDMETHOD(SetUserData)(void * pUserData) { m_pUserData = pUserData; return S_OK; }
 private:
 	C7ZipOutStreamWrap * _outFileStreamSpec;
 	CMyComPtr<ISequentialOutStream> _outFileStream;
@@ -85,11 +87,17 @@ private:
 	C7ZipOutStream * m_pOutStream;
 	const C7ZipArchive * m_pArchive;
 	const C7ZipArchiveItem * m_pItem;
+	UInt64 m_nTotalSize;
+	ProcessCallback m_Callback;
+	void * m_pUserData;
 public:
 	CArchiveExtractCallback(C7ZipOutStream * pOutStream,const C7ZipArchive * pArchive,const C7ZipArchiveItem * pItem) :
 		m_pOutStream(pOutStream),
 		m_pArchive(pArchive),
-		m_pItem(pItem)
+		m_pItem(pItem),
+		m_nTotalSize(0),
+		m_Callback(NULL),
+		m_pUserData(NULL)
 	{
 	}
 };
@@ -108,6 +116,7 @@ public:
 	virtual bool Extract(unsigned int index, C7ZipOutStream * pOutStream);
 	virtual bool Extract(unsigned int index, C7ZipOutStream * pOutStream, const wstring & pwd);
 	virtual bool Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutStream * pOutStream);
+	virtual bool Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutStream * pOutStream, const ProcessCallback &callback, void * user);
 
 	virtual void Close();
 
@@ -203,6 +212,19 @@ bool C7ZipArchiveImpl::Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutSt
 	return m_pInArchive->Extract(&nArchiveIndex, 1, false, extractCallbackSpec) == S_OK;
 }
 
+bool C7ZipArchiveImpl::Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutStream * pOutStream, const ProcessCallback &callback, void * user)
+{
+	CArchiveExtractCallback *extractCallbackSpec =
+		new CArchiveExtractCallback(pOutStream, this, pArchiveItem);
+	CMyComPtr<IArchiveExtractCallback> extractCallback(extractCallbackSpec);
+	extractCallbackSpec->SetCallback(callback);
+	extractCallbackSpec->SetUserData(user);
+
+	UInt32 nArchiveIndex = pArchiveItem->GetArchiveIndex();
+
+	return m_pInArchive->Extract(&nArchiveIndex, 1, false, extractCallbackSpec) == S_OK;
+}
+
 void C7ZipArchiveImpl::Close()
 {
 	m_pInArchive->Close();
@@ -261,13 +283,18 @@ bool Create7ZipArchive(C7ZipLibrary * pLibrary,
 	return false;
 }
 
-STDMETHODIMP CArchiveExtractCallback::SetTotal(UInt64 /* size */)
+STDMETHODIMP CArchiveExtractCallback::SetTotal(UInt64  size )
 {
+	m_nTotalSize = size;
 	return S_OK;
 }
 
-STDMETHODIMP CArchiveExtractCallback::SetCompleted(const UInt64 * /* completeValue */)
+STDMETHODIMP CArchiveExtractCallback::SetCompleted(const UInt64 *  completeValue )
 {
+	float percent = (*completeValue) * 100.0 / m_nTotalSize;
+	if (m_Callback) {
+		m_Callback(percent, m_pUserData);
+	}
 	return S_OK;
 }
 

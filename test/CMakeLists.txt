@@ -27,3 +27,8 @@ TARGET_LINK_LIBRARIES(${test_target_name}
 )
 
 ENDFOREACH()
+
+IF (MSVC)
+add_definitions(-DUNICODE -D_UNICODE)
+set(CMAKE_CXX_FLAGS "${MAKE_CXX_FLAGS} /WX-")
+ENDIF ()
