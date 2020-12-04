@@ -304,13 +304,7 @@ int main(int argc, char * argv[])
 							val);
 				}
 
-				//set archive password or item password
-				//pArchive->SetArchivePassword(L"test");
-				if (i==0) {
-					//Or set password for each archive item
-					//pArchiveItem->SetArchiveItemPassword(L"test");
-					//pArchive->Extract(pArchiveItem, &oStream);
-				}
+                pArchive->Extract(pArchiveItem, &oStream);
 			} //if
 		}//for
 	}

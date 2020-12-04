@@ -218,8 +218,6 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
                                    bool fCheckFileTypeBySignature)
 {
     CMyComPtr<IInArchive> archive = NULL;
-    CMyComPtr<ISetCompressCodecsInfo> setCompressCodecsInfo = NULL;
-    CMyComPtr<IInArchiveGetStream> getStream = NULL;
 
 	wstring extension = pInStream->GetExt();
 
@@ -232,8 +230,13 @@ static HRESULT InternalOpenArchive(C7ZipLibrary * pLibrary,
     std::vector<CMyComPtr<IInArchive>> archives;
 
 	do {
-        if (archive != NULL)
+        CMyComPtr<ISetCompressCodecsInfo> setCompressCodecsInfo = NULL;
+        CMyComPtr<IInArchiveGetStream> getStream = NULL;
+
+        if (archive != NULL) {
             archives.push_back(archive);
+            archive = NULL;
+        }
 
 		FAIL_RET(CreateInArchive(pHandler->GetFunctions(),
 								 pHandler->GetFormatInfoArray(),
