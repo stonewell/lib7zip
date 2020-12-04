@@ -3,11 +3,11 @@
 
 #define LIB_7ZIP_VER_MAJOR 3
 #define LIB_7ZIP_VER_MINOR 0
-#define LIB_7ZIP_VER_BUILD 0
+#define LIB_7ZIP_VER_BUILD 1
 #define LIB_7ZIP_VERSION "3.0"
 #define LIB_7ZIP_7ZIP_VERSION "lib7Zip 3.0"
-#define LIB_7ZIP_DATE "2018-09"
-#define LIB_7ZIP_COPYRIGHT "Copyright (c) 2009-2018"
+#define LIB_7ZIP_DATE "2020-12"
+#define LIB_7ZIP_COPYRIGHT "Copyright (c) 2009-2020"
 #define LIB_7ZIP_VERSION_COPYRIGHT_DATE MY_VERSION "  " MY_COPYRIGHT "  " MY_DATE
 
 #include <string>
