@@ -1,6 +1,8 @@
 # lib7zip
 A library using 7z.dll/7z.so(from 7-Zip) to handle different archive types. lib7zip is based on 7zip/p7zip source code, but NOT including any source code from 7zip/p7zip.
 
+Some fixed by KATO Kanryu.
+
 Tips
 ====
 * Build lib7zip
@@ -13,6 +15,7 @@ Tips
         * Get a copy of original 7zip source code, NOT the p7zip for linux
         * Define a env P7ZIP_SOURCE_DIR point to the extracted folder
         * cmake -DBUILD_SHARED_LIB=OFF -DP7ZIP_SOURCE_DIR=${P7ZIP_SOURCE_DIR}
+        * can build by Visual Studio 2015
 * Run lib7zip
     * Under UNIX/LINUX like system
         * install p7zip binary
@@ -41,6 +44,12 @@ Related Projects
 
 Change Log
 ====
+
+3.1.0
+----
+1. can build by Visual Studio 2015
+2. Added extractAll() API to extract all files in the archive.
+
 3.0.0
 ----
 1. move build system to cmake

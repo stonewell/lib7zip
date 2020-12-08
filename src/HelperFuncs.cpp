@@ -2,10 +2,10 @@
 #include "config.h"
 #endif
 
-#define BUILD_LIB7ZIP
-#ifndef INITGUID
-#define INITGUID
-#endif
+//#define BUILD_LIB7ZIP
+//#ifndef INITGUID
+//#define INITGUID
+//#endif
 
 #if !defined(_WIN32) && !defined(_OS2)
 #include "CPP/myWindows/StdAfx.h"

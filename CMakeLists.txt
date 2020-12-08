@@ -3,7 +3,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 CMAKE_POLICY(
     SET CMP0048 NEW
 )
-
+cmake_policy(SET CMP0054 NEW)
 PROJECT (lib7zip
 	VERSION 3.0.0
 )
@@ -45,7 +45,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(warnings "-Wall -Wextra -Werror -Wno-inconsistent-missing-override -Wno-unused-parameter")
   set(no_undefined "-Wl,-undefined,error")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    set(warnings "/W4 /WX /EHsc")
+    set(warnings "/WX- /EHsc")
     set(no_undefined "")
 endif()
 
@@ -53,12 +53,21 @@ SET(CXX_STANDARD_REQUIRED OFF)
 SET(CXX_EXTENSION NO)
 
 if (NOT CONFIGURED_ONCE)
-    set(CMAKE_C_FLAGS "-fPIC ${warnings}"
-        CACHE STRING "Flags used by the compiler during all build types." FORCE)
-    set(CMAKE_CXX_FLAGS "-fPIC ${warnings} -std=c++14"
-        CACHE STRING "Flags used by the compiler during all build types." FORCE)
-    set(CMAKE_LINK_FLAGS "${no_undefined}"
-        CACHE STRING "Flags used by the linker during all build types." FORCE)
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+        set(CMAKE_C_FLAGS "-DUNICODE -D_UNICODE -DWIN32 -Zc:wchar_t ${warnings}"
+            CACHE STRING "Flags used by the compiler during all build types." FORCE)
+        set(CMAKE_CXX_FLAGS "-DUNICODE -D_UNICODE -DWIN32 -Zc:wchar_t  -FS -Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew ${warnings}"
+            CACHE STRING "Flags used by the compiler during all build types." FORCE)
+        set(CMAKE_LINK_FLAGS "/DYNAMICBASE /NXCOMPAT /SUBSYSTEM:WINDOWS ${no_undefined}"
+            CACHE STRING "Flags used by the linker during all build types." FORCE)
+    else()
+        set(CMAKE_C_FLAGS "-fPIC ${warnings}"
+            CACHE STRING "Flags used by the compiler during all build types." FORCE)
+        set(CMAKE_CXX_FLAGS "-fPIC ${warnings} -std=c++14"
+            CACHE STRING "Flags used by the compiler during all build types." FORCE)
+        set(CMAKE_LINK_FLAGS "${no_undefined}"
+            CACHE STRING "Flags used by the linker during all build types." FORCE)
+    endif()
 endif()
 
 ADD_SUBDIRECTORY(src)
