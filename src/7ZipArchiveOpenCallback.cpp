@@ -9,8 +9,8 @@
 #include "CPP/Common/MyCom.h"
 #include "CPP/7zip/ICoder.h"
 #include "CPP/7zip/IPassword.h"
-#include "Common/ComTry.h"
-#include "Windows/PropVariant.h"
+#include "CPP/Common/ComTry.h"
+#include "CPP/Windows/PropVariant.h"
 using namespace NWindows;
 
 #include "stdlib.h"
