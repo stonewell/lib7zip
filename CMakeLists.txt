@@ -39,15 +39,15 @@ SET(P7ZIP_INCLUDE_PATH   "${P7ZIP_SOURCE_DIR}"
 
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  set(warnings "-Wall -Wextra -Werror -Wno-unused-parameter")
-  set(cxx_warnings "-Wno-class-memaccess")
-  set(no_undefined "-Wl,--no-undefined")
+  set(warnings -Wall -Wextra -Werror -Wno-unused-parameter)
+  set(cxx_warnings -Wno-class-memaccess)
+  set(no_undefined -Wl,--no-undefined)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  set(warnings "-Wall -Wextra -Werror -Wno-inconsistent-missing-override -Wno-unused-parameter")
+  set(warnings -Wall -Wextra -Werror -Wno-inconsistent-missing-override -Wno-unused-parameter)
   set(cxx_warnings "")
-  set(no_undefined "-Wl,-undefined,error")
+  set(no_undefined -Wl,-undefined,error)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    set(warnings "/W4 /WX /EHsc")
+    set(warnings /W4 /WX /EHsc)
     set(no_undefined "")
     set(cxx_warnings "")
 endif()
@@ -56,12 +56,8 @@ SET(CXX_STANDARD_REQUIRED OFF)
 SET(CXX_EXTENSION NO)
 
 if (NOT CONFIGURED_ONCE)
-    set(CMAKE_C_FLAGS "-fPIC ${warnings}"
-        CACHE STRING "Flags used by the compiler during all build types." FORCE)
-    set(CMAKE_CXX_FLAGS "-fPIC ${warnings} ${cxx_warnings} -std=c++14"
-        CACHE STRING "Flags used by the compiler during all build types." FORCE)
-    set(CMAKE_LINK_FLAGS "${no_undefined}"
-        CACHE STRING "Flags used by the linker during all build types." FORCE)
+ADD_COMPILE_OPTIONS(-fPIC -std=c++14 ${warnings} ${cxx_warnings})
+ADD_LINK_OPTIONS(${no_undefined})
 endif()
 
 ADD_SUBDIRECTORY(src)
