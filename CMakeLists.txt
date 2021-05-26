@@ -25,7 +25,7 @@ ENDIF()
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 
 OPTION(BUILD_SHARED_LIB "build shared library" OFF)
-SET(P7ZIP_SOURCE_DIR "" CACHE PATH "pzip/7zip source code path")
+SET(P7ZIP_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/p7zip" CACHE PATH "pzip/7zip source code path")
 
 IF (NOT IS_DIRECTORY ${P7ZIP_SOURCE_DIR})
   MESSAGE(FATAL_ERROR "must proivde p7zip/7zip source path using -DP7ZIP_SOURCE_DIR")

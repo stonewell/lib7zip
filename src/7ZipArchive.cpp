@@ -78,6 +78,10 @@ public:
 	// ICryptoGetTextPassword
 	STDMETHOD(CryptoGetTextPassword)(BSTR *aPassword);
 
+	virtual bool SetFileSymLinkAttrib() {
+		return false;
+	}
+
 private:
 	C7ZipOutStreamWrap * _outFileStreamSpec;
 	CMyComPtr<ISequentialOutStream> _outFileStream;
