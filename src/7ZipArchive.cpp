@@ -297,23 +297,20 @@ STDMETHODIMP CArchiveExtractCallback::PrepareOperation(Int32 askExtractMode)
 
 STDMETHODIMP CArchiveExtractCallback::SetOperationResult(Int32 operationResult)
 {
+	STDMETHODIMP operationSuccess;
+
 	switch(operationResult)
 	{
 	case NArchive::NExtract::NOperationResult::kOK:
+		operationSuccess = S_OK;
 		break;
 	default:
-		{
-			switch(operationResult)
-			{
-			default:
-				break;
-			}
-		}
+		operationSuccess = S_FALSE;
 	}
 
 	_outFileStream.Release();
 
-	return S_OK;
+	return operationSuccess;
 }
 
 
