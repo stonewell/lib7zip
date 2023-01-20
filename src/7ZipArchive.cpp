@@ -64,6 +64,8 @@ class CArchiveExtractCallback:
 	public CMyUnknownImp
 {
 public:
+	int lastError;
+
 	MY_UNKNOWN_IMP1(ICryptoGetTextPassword)
 
 	// IProgress
@@ -129,11 +131,14 @@ public:
 									  wstring & val) const;
 	virtual bool GetFileTimeProperty(lib7zip::PropertyIndexEnum propertyIndex,
 									 unsigned __int64 & val) const;
+
+	virtual wstring GetLastExtractError() const;
 private:
 	CMyComPtr<IInArchive> m_pInArchive;
 	C7ZipObjectPtrArray m_ArchiveItems;
 	wstring m_Password;
     std::vector<CMyComPtr<IInArchive>> m_Archives;
+    int lastExtractError;
 };
 
 C7ZipArchiveImpl::C7ZipArchiveImpl(C7ZipLibrary * pLibrary, IInArchive * pInArchive,
@@ -204,7 +209,10 @@ bool C7ZipArchiveImpl::Extract(const C7ZipArchiveItem * pArchiveItem, C7ZipOutSt
 
 	UInt32 nArchiveIndex = pArchiveItem->GetArchiveIndex();
 
-	return m_pInArchive->Extract(&nArchiveIndex, 1, false, extractCallbackSpec) == S_OK;
+	bool success = m_pInArchive->Extract(&nArchiveIndex, 1, false, extractCallbackSpec) == S_OK;
+	lastExtractError = extractCallbackSpec->lastError;
+
+	return success;
 }
 
 void C7ZipArchiveImpl::Close()
@@ -227,6 +235,8 @@ bool C7ZipArchiveImpl::Initialize()
 			m_ArchiveItems.push_back(pItem);
 		}
 	}
+
+	lastExtractError = NArchive::NExtract::NOperationResult::kOK;
 
 	return true;
 }
@@ -298,6 +308,8 @@ STDMETHODIMP CArchiveExtractCallback::PrepareOperation(Int32 askExtractMode)
 STDMETHODIMP CArchiveExtractCallback::SetOperationResult(Int32 operationResult)
 {
 	STDMETHODIMP operationSuccess;
+
+	lastError = operationResult;
 
 	switch(operationResult)
 	{
@@ -483,6 +495,34 @@ bool C7ZipArchiveImpl::GetFileTimeProperty(lib7zip::PropertyIndexEnum propertyIn
 	}
 
 	return false;
+}
+
+wstring C7ZipArchiveImpl::GetLastExtractError() const
+{
+	switch(lastExtractError) {
+	case NArchive::NExtract::NOperationResult::kOK:
+		return L"No error";
+	case NArchive::NExtract::NOperationResult::kUnsupportedMethod:
+		return L"Unsupported method";
+	case NArchive::NExtract::NOperationResult::kDataError:
+		return L"Data error";
+	case NArchive::NExtract::NOperationResult::kCRCError:
+		return L"Checksum error";
+	case NArchive::NExtract::NOperationResult::kUnavailable:
+		return L"Unavailable data";
+	case NArchive::NExtract::NOperationResult::kUnexpectedEnd:
+		return L"Data is truncated";
+	case NArchive::NExtract::NOperationResult::kDataAfterEnd:
+		return L"Extraneous data after end";
+	case NArchive::NExtract::NOperationResult::kIsNotArc:
+		return L"Not an archive";
+	case NArchive::NExtract::NOperationResult::kHeadersError:
+		return L"Header error";
+	case NArchive::NExtract::NOperationResult::kWrongPassword:
+		return L"Incorrect password";
+	default:
+		return L"Unknown error";
+	}
 }
 
 /*------------------- C7ZipArchive -----------*/

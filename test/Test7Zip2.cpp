@@ -305,10 +305,12 @@ int main(int argc, char * argv[])
 					//Or set password for each archive item
 					//pArchiveItem->SetArchiveItemPassword(L"test");
 					if (!pArchive->Extract(pArchiveItem, &oStream)) {
-						wstring strVal = L"";
+						wstring strVal = L"", error;
 						pArchiveItem->GetStringProperty(
 								lib7zip::kpidPath, strVal);
-						wprintf(L"extract file %ls fail\n", strVal.c_str());
+						error = pArchive->GetLastExtractError();
+						wprintf(L"extract file %ls fail: %ls\n",
+							strVal.c_str(), error.c_str());
 					}
 				}
 			} //if
