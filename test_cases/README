@@ -1,0 +1,5 @@
+dm_g_uninitialized_read.gz: This is interpreted as a ZIP file after which
+reads from uninitialized memory happen (seemingly as part of an attempt to
+treat it as a DMG file?). This is a lib7zip problem; it happens with
+lib7zip's test_archive but not with p7zip's 7z or 7za. It's from
+dependabot-core-0.50.9.tar.gz.
