@@ -119,7 +119,8 @@ static int CreateInArchive(pU7ZipFunctions pFunctions,
               continue; //unable to read signature
 
           if (dmg_archive) {
-              ReadStream(inStream, -0x200, FILE_END, signatureEnd);
+              /* Only accept it as a dmg archive if we can read the end signature */
+              dmg_archive &= ReadStream(inStream, -0x200, FILE_END, signatureEnd);
           }
 
           if (signature == pInfo->Signatures[i]
