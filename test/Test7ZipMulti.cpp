@@ -322,7 +322,14 @@ int main(int argc, char * argv[])
 				if (i==0) {
 					//Or set password for each archive item
 					//pArchiveItem->SetArchiveItemPassword(L"test");
-					pArchive->Extract(pArchiveItem, &oStream);
+					if (!pArchive->Extract(pArchiveItem, &oStream)) {
+						wstring strVal = L"", error;
+						pArchiveItem->GetStringProperty(
+								lib7zip::kpidPath, strVal);
+						error = pArchive->GetLastExtractError();
+						wprintf(L"extract file %ls fail: %ls\n",
+							strVal.c_str(), error.c_str());
+					}
 				}
 		}
 	}

@@ -39,7 +39,7 @@ SET(P7ZIP_INCLUDE_PATH   "${P7ZIP_SOURCE_DIR}"
 
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  set(warnings -Wall -Wextra -Werror -Wno-unused-parameter)
+  set(warnings -Wall -Wextra -Werror -Wno-unused-parameter -Wno-misleading-indentation)
   set(cxx_warnings -Wno-class-memaccess)
   set(no_undefined -Wl,--no-undefined)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

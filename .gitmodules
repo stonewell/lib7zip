@@ -1,3 +1,4 @@
 [submodule "third_party/p7zip"]
 	path = third_party/p7zip
-	url = https://github.com/jinfeihan57/p7zip.git
+	url = https://github.com/p7zip-project/p7zip
+	branch = p7zip17
